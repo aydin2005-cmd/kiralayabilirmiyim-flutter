@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
             keyboardType: TextInputType.phone,
             maxLength: 13,
             prefixText: '+90 ',
-            helper: 'Numaranızı başında 0 olmadan giriniz. Örnek: 532 123 45 67',
+            helper: 'Numaranızın başında 0 olmadan giriniz.',
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\s]'))],
           ),
           const SizedBox(height: 12),

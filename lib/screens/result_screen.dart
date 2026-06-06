@@ -571,7 +571,7 @@ class _ResultScreenState extends State<ResultScreen> {
         OutlinedButton.icon(
           onPressed: paymentProcessing ? null : _checkPaymentStatusFromResult,
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Ödeme Durumunu Kontrol Et'),
+          label: const Text('Ödemeyi Kontrol Et ve Devam Et'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(54),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

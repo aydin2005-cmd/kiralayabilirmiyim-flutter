@@ -89,7 +89,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         text.toLowerCase().contains('socketexception') ||
         text.toLowerCase().contains('connection') ||
         text.toLowerCase().contains('timed out')) {
-      return 'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra “Ödeme Durumunu Kontrol Et” düğmesine basınız.';
+      return 'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra “Ödemeyi Kontrol Et ve Devam Et” düğmesine basınız.';
     }
     return text;
   }
@@ -168,7 +168,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 OutlinedButton.icon(
                   onPressed: loading ? null : checkPaymentStatusManually,
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Ödeme Durumunu Kontrol Et'),
+                  label: const Text('Ödemeyi Kontrol Et ve Devam Et'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(54),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

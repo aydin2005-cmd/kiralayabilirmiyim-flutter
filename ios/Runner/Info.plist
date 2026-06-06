@@ -50,5 +50,17 @@
 <string>Gerekli durumlarda belge veya rapor görüntüsü yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
 <key>NSLocationWhenInUseUsageDescription</key>
 <string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
+<key>CFBundleURLTypes</key>
+<array>
+<dict>
+<key>CFBundleURLName</key>
+<string>com.riskmetriks.kiralayabilirmiyim</string>
+<key>CFBundleURLSchemes</key>
+<array>
+<string>kiralayabilirmiyim</string>
+</array>
+</dict>
+</array>
 </dict>
 </plist>
+

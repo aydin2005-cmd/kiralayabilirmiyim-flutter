@@ -65,7 +65,7 @@ class _IdentityProfileScreenState extends State<IdentityProfileScreen> {
           const SizedBox(height: 14),
           FlowTextField(controller: firstNameController, label: 'Adınız', textCapitalization: TextCapitalization.words),
           const SizedBox(height: 14),
-          FlowTextField(controller: middleNameController, label: 'Varsa 2. adınız', textCapitalization: TextCapitalization.words, helper: 'İkinci ad girilirse Findeks raporunda da ikinci ad maskesi aranır.'),
+          FlowTextField(controller: middleNameController, label: 'Varsa 2. adınız', textCapitalization: TextCapitalization.words),
           const SizedBox(height: 14),
           FlowTextField(controller: lastNameController, label: 'Soyadınız', textCapitalization: TextCapitalization.words),
           const SizedBox(height: 14),

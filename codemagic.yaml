@@ -37,7 +37,7 @@ workflows:
 
     publishing:
       app_store_connect:
-        issuer_id: 
+        api_key: 
         key_id: 
-        private_key: 
+        issuer_id: 
         submit_to_testflight: true

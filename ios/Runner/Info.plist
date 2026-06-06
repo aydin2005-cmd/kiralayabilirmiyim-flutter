@@ -26,30 +26,6 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<false/>
-		<key>UISceneConfigurations</key>
-		<dict>
-			<key>UIWindowSceneSessionRoleApplication</key>
-			<array>
-				<dict>
-					<key>UISceneClassName</key>
-					<string>UIWindowScene</string>
-					<key>UISceneConfigurationName</key>
-					<string>flutter</string>
-					<key>UISceneDelegateClassName</key>
-					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
-					<key>UISceneStoryboardFile</key>
-					<string>Main</string>
-				<key>NSPhotoLibraryUsageDescription</key>
-<string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
-<key>NSCameraUsageDescription</key>
-<string>Gerekli durumlarda belge veya rapor görüntüsü yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
-<key>NSLocationWhenInUseUsageDescription</key>
-<string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
-</dict>
 			</array>
 		<key>NSPhotoLibraryUsageDescription</key>
 <string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
@@ -92,4 +68,5 @@
 <string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
 </dict>
 </plist>
+
 

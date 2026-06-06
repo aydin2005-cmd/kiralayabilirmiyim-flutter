@@ -43,10 +43,28 @@
 					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
-				</dict>
+				<key>NSPhotoLibraryUsageDescription</key>
+<string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
+<key>NSCameraUsageDescription</key>
+<string>Gerekli durumlarda belge veya rapor görüntüsü yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
+</dict>
 			</array>
-		</dict>
-	</dict>
+		<key>NSPhotoLibraryUsageDescription</key>
+<string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
+<key>NSCameraUsageDescription</key>
+<string>Gerekli durumlarda belge veya rapor görüntüsü yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
+</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+<string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
+<key>NSCameraUsageDescription</key>
+<string>Gerekli durumlarda belge veya rapor görüntüsü yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
+</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -66,5 +84,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
+<key>NSCameraUsageDescription</key>
+<string>Gerekli durumlarda belge veya rapor görüntüsü yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Uygulama yalnızca Türkiye içinde kullanılmak üzere tasarlanmıştır. Konum erişimi, ileride bölgesel hizmet uygunluğunu desteklemek için kullanılabilir.</string>
 </dict>
 </plist>
+

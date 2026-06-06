@@ -22,9 +22,9 @@ workflows:
       - name: Set up code signing
         script: |
           keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create --certificate-key @env:CERTIFICATE_PRIVATE_KEY --verbose
           keychain add-certificates
-          xcode-project use-profiles
+          xcode-project use-profiles --verbose
 
       - name: Build iOS IPA
         script: |

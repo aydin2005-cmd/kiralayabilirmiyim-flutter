@@ -12,7 +12,6 @@ workflows:
       cocoapods: default
       vars:
         BUNDLE_ID: "com.riskmetriks.kiralayabilirmiyim"
-        APP_STORE_APPLE_ID: "6777328726"
 
     scripts:
       - name: Get Flutter packages
@@ -28,16 +27,16 @@ workflows:
 
       - name: Build iOS IPA
         script: |
-          flutter build ipa --release --dart-define=API_BASE_URL=https://api.kiralayabilirmiyim.com --export-options-plist=/Users/builder/export_options.plist
+          IOS_BUILD_NUMBER=$(date +%s)
+          echo "Using iOS build number: $IOS_BUILD_NUMBER"
+          flutter build ipa --release --build-number=$IOS_BUILD_NUMBER --dart-define=API_BASE_URL=https://api.kiralayabilirmiyim.com --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
 
     publishing:
       app_store_connect:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true

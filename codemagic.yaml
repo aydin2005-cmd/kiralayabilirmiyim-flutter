@@ -1,0 +1,43 @@
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      groups:
+        - app_store_connect
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.riskmetriks.kiralayabilirmiyim"
+        APP_STORE_APPLE_ID: "6777328726"
+
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "" --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release --dart-define=API_BASE_URL=https://api.kiralayabilirmiyim.com --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      app_store_connect:
+        issuer_id: 
+        key_id: 
+        private_key: 
+        submit_to_testflight: true

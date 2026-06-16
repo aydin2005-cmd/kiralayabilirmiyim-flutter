@@ -21,11 +21,13 @@ class _IdentityProfileScreenState extends State<IdentityProfileScreen> {
   bool loading = false;
 
   bool isValidTckn(String value) {
-    if (!RegExp(r'^\d{11}$').hasMatch(value) || value.startsWith('0')) return false;
+    if (!RegExp(r'^\d{11}$').hasMatch(value) || value.startsWith('0'))
+      return false;
     final d = value.split('').map(int.parse).toList();
-    final odd = d[0]+d[2]+d[4]+d[6]+d[8];
-    final even = d[1]+d[3]+d[5]+d[7];
-    return d[9] == ((odd*7)-even)%10 && d[10] == d.take(10).reduce((a,b)=>a+b)%10;
+    final odd = d[0] + d[2] + d[4] + d[6] + d[8];
+    final even = d[1] + d[3] + d[5] + d[7];
+    return d[9] == ((odd * 7) - even) % 10 &&
+        d[10] == d.take(10).reduce((a, b) => a + b) % 10;
   }
 
   Future<void> submit() async {
@@ -33,7 +35,8 @@ class _IdentityProfileScreenState extends State<IdentityProfileScreen> {
     final middleName = middleNameController.text.trim();
     final lastName = lastNameController.text.trim();
     final tckn = tcknController.text.trim();
-    if (firstName.length < 2 || lastName.length < 2) return _showError('Lütfen ad ve soyad bilgilerinizi girin.');
+    if (firstName.length < 2 || lastName.length < 2)
+      return _showError('Lütfen ad ve soyad bilgilerinizi girin.');
     if (!isValidTckn(tckn)) return _showError('Lütfen geçerli bir TCKN girin.');
     setState(() => loading = true);
     try {
@@ -49,32 +52,72 @@ class _IdentityProfileScreenState extends State<IdentityProfileScreen> {
       AppState.instance.lastName = response['last_name']?.toString();
       AppState.instance.tcknLast3 = response['tckn_last3']?.toString();
       if (!mounted) return;
-      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const PurposeScreen()), (_) => false);
-    } catch (e) { _showError(e.toString()); } finally { if (mounted) setState(() => loading = false); }
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const PurposeScreen()),
+          (_) => false);
+    } catch (e) {
+      _showError(e.toString());
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
-  void _showError(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 5)));
+
+  void _showError(String text) => ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 5)));
   @override
   Widget build(BuildContext context) {
     return FlowScaffold(
-      title: 'Kimlik Bilgileri',
+      title: 'Başvuru Sahibi Bilgileri',
       children: [
-        const FlowHeader(icon: Icons.person_search_outlined, eyebrow: 'Rapor eşleştirme', title: 'Rapor sahibini doğrulayalım', subtitle: 'Bu bilgiler, yükleyeceğiniz Findeks raporundaki maskeli ad-soyad ve TCKN son 3 hane ile eşleştirilir.'),
+        const FlowHeader(
+            icon: Icons.person_search_outlined,
+            eyebrow: 'Kimlik eşleştirme',
+            title: 'Başvuru sahibinin bilgilerini girin',
+            subtitle:
+                'Bu bilgiler, Findeks raporundaki maskeli ad-soyad ve TCKN son 3 hane bilgisiyle eşleştirme için kullanılır.'),
         const SizedBox(height: 22),
-        PremiumCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const TrustNotice(icon: Icons.badge_outlined, text: 'Lütfen adınızı ve soyadınızı kimlik kartınızdaki ile aynı şekilde giriniz.'),
+        PremiumCard(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const TrustNotice(
+              icon: Icons.badge_outlined,
+              text:
+                  'Lütfen adınızı ve soyadınızı kimlik kartınızdaki ile aynı şekilde giriniz.'),
           const SizedBox(height: 14),
-          FlowTextField(controller: firstNameController, label: 'Adınız', textCapitalization: TextCapitalization.words),
+          FlowTextField(
+              controller: firstNameController,
+              label: 'Adınız',
+              textCapitalization: TextCapitalization.words),
           const SizedBox(height: 14),
-          FlowTextField(controller: middleNameController, label: 'Varsa 2. adınız', textCapitalization: TextCapitalization.words),
+          FlowTextField(
+              controller: middleNameController,
+              label: 'Varsa 2. adınız',
+              textCapitalization: TextCapitalization.words),
           const SizedBox(height: 14),
-          FlowTextField(controller: lastNameController, label: 'Soyadınız', textCapitalization: TextCapitalization.words),
+          FlowTextField(
+              controller: lastNameController,
+              label: 'Soyadınız',
+              textCapitalization: TextCapitalization.words),
           const SizedBox(height: 14),
-          FlowTextField(controller: tcknController, label: 'TCKN', keyboardType: TextInputType.number, maxLength: 11, obscureText: true, helper: 'TCKN açık şekilde raporda veya doğrulama ekranında gösterilmez.', inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
+          FlowTextField(
+              controller: tcknController,
+              label: 'TCKN',
+              keyboardType: TextInputType.number,
+              maxLength: 11,
+              obscureText: true,
+              helper:
+                  'TCKN açık şekilde raporda veya doğrulama ekranında gösterilmez.',
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
         ])),
         const SizedBox(height: 14),
-        const TrustNotice(icon: Icons.shield_outlined, text: 'Ad, varsa 2. ad, soyad ve TCKN son 3 hane raporun size ait olduğunu doğrulamak için kullanılır. Paylaşılan raporlarda yalnızca maskeli bilgiler görünür.'),
+        const TrustNotice(
+            icon: Icons.shield_outlined,
+            text:
+                'Ad, varsa 2. ad, soyad ve TCKN son 3 hane raporun size ait olduğunu doğrulamak için kullanılır. Paylaşılan raporlarda yalnızca maskeli bilgiler görünür.'),
       ],
-      bottom: PrimaryButton(text: 'Devam Et', loading: loading, onPressed: submit),
+      bottom:
+          PrimaryButton(text: 'Devam Et', loading: loading, onPressed: submit),
     );
   }
 }

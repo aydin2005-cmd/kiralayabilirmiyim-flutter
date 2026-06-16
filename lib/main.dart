@@ -50,7 +50,8 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
   }
 
   Future<void> _handleDeepLink(Uri uri) async {
-    if (uri.scheme != 'kiralayabilirmiyim' || uri.host != 'payment-result') return;
+    if (uri.scheme != 'kiralayabilirmiyim' || uri.host != 'payment-result')
+      return;
     final appId = uri.queryParameters['application_id'];
     if (appId != null && appId.isNotEmpty) {
       AppState.instance.applicationId = appId;
@@ -60,7 +61,7 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
     if (context == null) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ödeme durumu kontrol ediliyor...')),
+      const SnackBar(content: Text('Ödeme durumunuz kontrol ediliyor...')),
     );
 
     try {
@@ -71,7 +72,10 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
           if (paid) break;
         } catch (e) {
           final text = e.toString().toLowerCase();
-          if (!text.contains('clientexception') && !text.contains('socketexception') && !text.contains('connection') && !text.contains('timed out')) {
+          if (!text.contains('clientexception') &&
+              !text.contains('socketexception') &&
+              !text.contains('connection') &&
+              !text.contains('timed out')) {
             rethrow;
           }
         }
@@ -80,14 +84,16 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
       if (!paid) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ödeme sonucu henüz alınamadı. Birkaç saniye sonra tekrar kontrol edin.')),
+          const SnackBar(
+              content: Text(
+                  'Ödeme sonucu henüz ulaşmadı. Kısa süre sonra tekrar kontrol edin.')),
         );
         return;
       }
       if (!context.mounted) return;
       if (!AppState.instance.markPaymentSuccessHandled()) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ödeme başarılı. Tam raporunuz açılıyor.')),
+        const SnackBar(content: Text('Ödeme başarılı. Tam rapor açılıyor.')),
       );
       _navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const AnalysisScreen()),
@@ -96,10 +102,12 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
     } catch (e) {
       if (!context.mounted) return;
       final text = e.toString();
-      final friendly = text.toLowerCase().contains('clientexception') || text.toLowerCase().contains('socketexception')
+      final friendly = text.toLowerCase().contains('clientexception') ||
+              text.toLowerCase().contains('socketexception')
           ? 'Ödeme sonucu kontrol ediliyor. Lütfen birkaç saniye sonra tekrar deneyiniz.'
           : text;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(friendly)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(friendly)));
     }
   }
 

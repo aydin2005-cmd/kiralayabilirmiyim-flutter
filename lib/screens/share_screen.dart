@@ -27,7 +27,6 @@ class _ShareScreenState extends State<ShareScreen> {
   String? verificationCode;
   String? error;
 
-
   Future<void> copyToClipboard(String? value, String label) async {
     if (value == null || value.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: value));
@@ -40,19 +39,24 @@ class _ShareScreenState extends State<ShareScreen> {
   Future<void> openExternalLink(String value) async {
     if (value.isEmpty) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Linkiniz açılıyor, lütfen bekleyiniz...')),
+      const SnackBar(content: Text('Bağlantı açılıyor, lütfen bekleyin...')),
     );
     try {
-      final opened = await launchUrl(Uri.parse(value), mode: LaunchMode.externalApplication);
+      final opened = await launchUrl(Uri.parse(value),
+          mode: LaunchMode.externalApplication);
       if (!opened && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Link açılamadı. Lütfen bağlantıyı kopyalayıp tarayıcıda deneyiniz.')),
+          const SnackBar(
+              content: Text(
+                  'Bağlantı açılamadı. Lütfen linki kopyalayıp tarayıcıda deneyin.')),
         );
       }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Link açılamadı. Lütfen bağlantıyı kopyalayıp tarayıcıda deneyiniz.')),
+        const SnackBar(
+            content: Text(
+                'Bağlantı açılamadı. Lütfen linki kopyalayıp tarayıcıda deneyin.')),
       );
     }
   }
@@ -74,7 +78,9 @@ class _ShareScreenState extends State<ShareScreen> {
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          SelectableText(linkValue, style: const TextStyle(color: Color(0xFF123C69), fontWeight: FontWeight.w700)),
+          SelectableText(linkValue,
+              style: const TextStyle(
+                  color: Color(0xFF123C69), fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -99,16 +105,21 @@ class _ShareScreenState extends State<ShareScreen> {
 
   Future<void> createShare() async {
     if (includeFindeksPdf && !findeksConsent) {
-      setState(() => error = 'Findeks risk raporunuzu paylaşmak için açık rıza onayını vermeniz gerekir.');
+      setState(() => error =
+          'Findeks risk raporunuzu paylaşmak için açık rıza onayını vermeniz gerekir.');
       return;
     }
 
     if (!AppState.instance.paymentCompleted) {
-      setState(() => error = 'Ödeme tamamlanmadan paylaşım linki oluşturulamaz.');
+      setState(
+          () => error = 'Ödeme tamamlanmadan paylaşım linki oluşturulamaz.');
       return;
     }
 
-    setState(() { loading = true; error = null; });
+    setState(() {
+      loading = true;
+      error = null;
+    });
     try {
       final appId = AppState.instance.applicationId;
       if (appId == null) throw ApiException('Başvuru bulunamadı.');
@@ -116,14 +127,19 @@ class _ShareScreenState extends State<ShareScreen> {
       final response = await api.post('/shares', {
         'application_id': appId,
         'recipient_type': 'landlord',
-        'recipient_name': nameController.text.trim().isEmpty ? null : nameController.text.trim(),
-        'recipient_phone': phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
+        'recipient_name': nameController.text.trim().isEmpty
+            ? null
+            : nameController.text.trim(),
+        'recipient_phone': phoneController.text.trim().isEmpty
+            ? null
+            : phoneController.text.trim(),
         'include_findeks_pdf': includeFindeksPdf,
         'findeks_pdf_consent_given': includeFindeksPdf ? findeksConsent : false,
       });
 
       shareUrl = response['url']?.toString();
-      pdfUrl = response['pdf_url']?.toString() ?? (shareUrl == null ? null : '${shareUrl!}/pdf');
+      pdfUrl = response['pdf_url']?.toString() ??
+          (shareUrl == null ? null : '${shareUrl!}/pdf');
       verificationUrl = response['verification_url']?.toString();
       verificationCode = response['verification_code']?.toString();
     } catch (e) {
@@ -160,7 +176,7 @@ class _ShareScreenState extends State<ShareScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sonucu Paylaş'),
+        title: const Text('Raporu Paylaş'),
       ),
       body: SafeArea(
         minimum: const EdgeInsets.all(20),
@@ -168,7 +184,7 @@ class _ShareScreenState extends State<ShareScreen> {
           controller: scrollController,
           children: [
             const Text(
-              'Paylaşılacak Belgeler',
+              'Paylaşılacak belgeler',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 12),
@@ -178,8 +194,9 @@ class _ShareScreenState extends State<ShareScreen> {
                   const CheckboxListTile(
                     value: true,
                     onChanged: null,
-                    title: Text('Kiralayabilir Miyim Sonuç Raporu'),
-                    subtitle: Text('Bu belge paylaşımın ana raporudur.'),
+                    title: Text('Kiralayabilir Miyim Değerlendirme Raporu'),
+                    subtitle: Text(
+                        'Bu belge, kiralama başvurunuz için oluşturulan finansal değerlendirme raporudur.'),
                   ),
                   CheckboxListTile(
                     value: includeFindeksPdf,
@@ -187,8 +204,10 @@ class _ShareScreenState extends State<ShareScreen> {
                       includeFindeksPdf = v ?? false;
                       if (!includeFindeksPdf) findeksConsent = false;
                     }),
-                    title: const Text('Findeks Risk Raporumu da paylaşmak istiyorum'),
-                    subtitle: const Text('Bu belge detaylı finansal bilgiler içerebilir. Yalnızca açık onayınızla ve rapor tarihinden itibaren en fazla 16 gün süreyle paylaşılır.'),
+                    title: const Text(
+                        'Orijinal Findeks Risk Raporumu da eklemek istiyorum'),
+                    subtitle: const Text(
+                        'Bu belge detaylı finansal bilgiler içerebilir. Yalnızca açık onayınızla ve rapor tarihinden itibaren en fazla 16 gün süreyle erişilebilir olur.'),
                   ),
                   if (includeFindeksPdf)
                     Padding(
@@ -203,16 +222,18 @@ class _ShareScreenState extends State<ShareScreen> {
                         child: Column(
                           children: [
                             const Text(
-                              'Findeks risk raporu; kredi limitleri, borçlar, ödeme geçmişi, gecikme bilgileri ve finans kuruluşu detayları gibi hassas finansal bilgiler içerebilir. Bu belgeyi yalnızca paylaşmak istediğiniz kişi veya kurumla paylaşmanız önerilir. Findeks PDF, onay vermeniz halinde rapor tarihinden itibaren en fazla 16 gün süreyle erişilebilir olur; paylaşım iptal edilir veya süre dolarsa erişim kapatılır.',
+                              'Findeks risk raporu; kredi limitleri, borçlar, ödeme geçmişi, gecikme bilgileri ve finans kuruluşu detayları gibi hassas finansal bilgiler içerebilir. Bu belgeyi yalnızca paylaşmak istediğiniz kişi veya kurumla paylaşmanız önerilir. Onay vermeniz halinde orijinal Findeks PDF, rapor tarihinden itibaren en fazla 16 gün süreyle erişilebilir olur.',
                               style: TextStyle(fontSize: 13),
                             ),
                             CheckboxListTile(
                               value: findeksConsent,
-                              onChanged: (v) => setState(() => findeksConsent = v ?? false),
+                              onChanged: (v) =>
+                                  setState(() => findeksConsent = v ?? false),
                               contentPadding: EdgeInsets.zero,
                               title: const Text(
-                                'Yüklediğim Findeks risk raporunun, bu paylaşım linkine erişen kişi veya kurum tarafından rapor tarihinden itibaren en fazla 16 gün süreyle görüntülenebilmesini kabul ediyorum.',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                'Yüklediğim orijinal Findeks risk raporunun, bu paylaşım linkine erişen kişi veya kurum tarafından rapor tarihinden itibaren en fazla 16 gün süreyle görüntülenebilmesini kabul ediyorum.',
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.w700),
                               ),
                             ),
                           ],
@@ -231,30 +252,33 @@ class _ShareScreenState extends State<ShareScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
-                'Ödeme sonrası tam sonuç raporu, PDF sonuç raporu ve paylaşım linki erişime açılır. Orijinal Findeks PDF yalnızca ayrıca onay verirseniz ve en fazla 16 gün süreyle paylaşılır.',
+                'Tam değerlendirme raporu, PDF rapor ve paylaşım linkleri erişime açıktır. Orijinal Findeks PDF yalnızca ayrıca onay verirseniz ve en fazla 16 gün süreyle erişilebilir olur.',
                 style: TextStyle(fontSize: 13, height: 1.35),
               ),
             ),
             const SizedBox(height: 18),
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Alıcı adı / kurum adı (isteğe bağlı)')),
-            const SizedBox(height: 12),
-            TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Alıcı telefon / e-posta (isteğe bağlı)')),
-            const SizedBox(height: 20),
             if (error != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(error!, style: const TextStyle(color: Colors.red)),
               ),
             if (shareUrl != null) ...[
-              Container(key: linksKey, child: linkRow('Web sonuç raporu linki', shareUrl)),
-              linkRow('PDF sonuç raporu linki', pdfUrl),
+              Container(
+                  key: linksKey, child: linkRow('PDF rapor linki', pdfUrl)),
+              linkRow('Web rapor linki', shareUrl),
               linkRow('Rapor doğrulama linki', verificationUrl),
               if (verificationCode != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: const Color(0xFFF0FBF8), border: Border.all(color: const Color(0xFFBFE8DD)), borderRadius: BorderRadius.circular(12)),
-                  child: Text('Doğrulama kodu: $verificationCode', style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF075E47))),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFF0FBF8),
+                      border: Border.all(color: const Color(0xFFBFE8DD)),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Text('Paylaşım doğrulama kodu: $verificationCode',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF075E47))),
                 ),
               Container(
                 padding: const EdgeInsets.all(10),
@@ -264,14 +288,16 @@ class _ShareScreenState extends State<ShareScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text(
-                  'Yerel test notu: Web/PDF ve doğrulama linklerini Windows bilgisayarınızdaki tarayıcıda açın. Doğrulama sayfası sınırlı rapor bilgisi gösterir. Orijinal Findeks PDF yalnızca kullanıcı ayrıca onay verdiyse paylaşılır.',
+                  'Paylaştığınız kişi veya kurum, web rapor linki ve doğrulama linki üzerinden raporun geçerliliğini kontrol edebilir. Orijinal Findeks PDF yalnızca ayrıca onay verdiyseniz erişilebilir olur.',
                   style: TextStyle(fontSize: 12, height: 1.35),
                 ),
               ),
               const SizedBox(height: 8),
             ],
             if (shareUrl == null)
-              PrimaryButton(text: loading ? 'Oluşturuluyor...' : 'Paylaşım Linki Oluştur', onPressed: loading ? null : createShare),
+              PrimaryButton(
+                  text: loading ? 'Oluşturuluyor...' : 'Paylaşım Linki Oluştur',
+                  onPressed: loading ? null : createShare),
           ],
         ),
       ),

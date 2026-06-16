@@ -9,7 +9,7 @@ class ApiClient {
   // Emulator alternative: --dart-define=API_BASE_URL=http://10.0.2.2:8000
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.9.123:8000',
+    defaultValue: 'https://staging-api.kiralayabilirmiyim.com',
   );
 
   static const _storage = FlutterSecureStorage();
@@ -36,15 +36,19 @@ class ApiClient {
     return headers;
   }
 
-  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> post(
+      String path, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$path');
-    final response = await http.post(uri, headers: await _headers(), body: jsonEncode(body));
+    final response =
+        await http.post(uri, headers: await _headers(), body: jsonEncode(body));
     return _decode(response);
   }
 
-  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> patch(
+      String path, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$path');
-    final response = await http.patch(uri, headers: await _headers(), body: jsonEncode(body));
+    final response = await http.patch(uri,
+        headers: await _headers(), body: jsonEncode(body));
     return _decode(response);
   }
 
@@ -60,7 +64,8 @@ class ApiClient {
     return _decode(response);
   }
 
-  Future<Map<String, dynamic>> uploadPdf(String path, File file, String applicationId) async {
+  Future<Map<String, dynamic>> uploadPdf(
+      String path, File file, String applicationId) async {
     final uri = Uri.parse('$baseUrl$path');
     final request = http.MultipartRequest('POST', uri);
 
@@ -84,17 +89,21 @@ class ApiClient {
     try {
       decoded = jsonDecode(body);
     } catch (_) {
-      throw ApiException('İşleminiz şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.');
+      throw ApiException(
+          'İşleminiz şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.');
     }
 
-    final map = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{'data': decoded};
+    final map = decoded is Map<String, dynamic>
+        ? decoded
+        : <String, dynamic>{'data': decoded};
 
     if (response.statusCode >= 400) {
       final detail = map['detail'];
       if (detail is String && detail.isNotEmpty) {
         throw ApiException(detail);
       }
-      throw ApiException('İşleminiz şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.');
+      throw ApiException(
+          'İşleminiz şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.');
     }
 
     return map;

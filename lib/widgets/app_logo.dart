@@ -15,7 +15,8 @@ class AppLogo extends StatelessWidget {
             color: AppTheme.primary,
             borderRadius: BorderRadius.circular(22),
           ),
-          child: const Icon(Icons.verified_user_outlined, color: Colors.white, size: 38),
+          child: const Icon(Icons.verified_user_outlined,
+              color: Colors.white, size: 38),
         ),
         const SizedBox(height: 18),
         const Text(

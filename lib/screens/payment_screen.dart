@@ -16,12 +16,14 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   bool loading = false;
 
-  String get _amountText => '${_formatAmount(AppState.instance.serviceFeeAmount)} ${AppState.instance.serviceFeeCurrency}';
+  String get _amountText =>
+      '${_formatAmount(AppState.instance.serviceFeeAmount)} ${AppState.instance.serviceFeeCurrency}';
 
   static String _formatAmount(num value) {
     if (value % 1 == 0) return value.toInt().toString();
     return value.toStringAsFixed(2).replaceAll('.', ',');
   }
+
   String loadingMessage = 'Ödeme kontrol ediliyor...';
   final api = ApiClient();
 
@@ -47,14 +49,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (!AppState.instance.markPaymentSuccessHandled()) return;
       await _showPaymentSuccessSheet();
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
     } catch (e) {
       _showError(_friendlyPaymentError(e));
     } finally {
       if (mounted) setState(() => loading = false);
     }
   }
-
 
   Future<void> checkPaymentStatusManually() async {
     setState(() {
@@ -64,16 +66,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
     try {
       final paid = await PaymentFlow.checkCurrentStatus(api: api);
       if (!paid) {
-        throw ApiException('Ödeme sonucu henüz alınamadı. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar kontrol edin.');
+        throw ApiException(
+            'Ödeme sonucu henüz alınamadı. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar kontrol edin.');
       }
       if (!mounted) return;
       if (!AppState.instance.markPaymentSuccessHandled()) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
         return;
       }
       await _showPaymentSuccessSheet();
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
     } catch (e) {
       _showError(_friendlyPaymentError(e));
     } finally {
@@ -81,7 +86,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  void _showError(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _showError(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
   String _friendlyPaymentError(Object error) {
     final text = error.toString();
@@ -89,7 +95,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         text.toLowerCase().contains('socketexception') ||
         text.toLowerCase().contains('connection') ||
         text.toLowerCase().contains('timed out')) {
-      return 'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra “Ödemeyi Kontrol Et ve Devam Et” düğmesine basınız.';
+      return 'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra “Ödeme Durumunu Kontrol Et” düğmesine basınız.';
     }
     return text;
   }
@@ -99,7 +105,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       context: context,
       isDismissible: false,
       enableDrag: false,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
       builder: (context) {
         Future.delayed(const Duration(milliseconds: 2200), () {
           if (Navigator.of(context).canPop()) Navigator.of(context).pop();
@@ -110,11 +117,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.verified_rounded, size: 58, color: Color(0xFF087A4A)),
+                Icon(Icons.verified_rounded,
+                    size: 58, color: Color(0xFF087A4A)),
                 SizedBox(height: 14),
-                Text('Ödeme başarılı', textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF123C69))),
+                Text('Ödeme başarılı',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF123C69))),
                 SizedBox(height: 8),
-                Text('Tam raporunuz açılıyor.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, height: 1.4, color: Color(0xFF475569), fontWeight: FontWeight.w700)),
+                Text('Tam rapor açılıyor.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 15,
+                        height: 1.4,
+                        color: Color(0xFF475569),
+                        fontWeight: FontWeight.w700)),
               ],
             ),
           ),
@@ -133,48 +152,70 @@ class _PaymentScreenState extends State<PaymentScreen> {
             minimum: const EdgeInsets.all(20),
             child: Column(
               children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(22),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Raporunuzu açın ve paylaşın', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 12),
-                    Text(_amountText, style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 12),
-                    const Text('Rapor oluşturma ve paylaşım hizmeti', style: TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 10),
-                    const Text('Ödeme sonrası tam rapor, PDF ve paylaşım linki erişime açılır.'),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 2,
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _LegalChip(label: 'Ön Bilgilendirme', url: LegalLinks.onBilgilendirme),
-                        _LegalChip(label: 'Kullanım Şartları', url: LegalLinks.kullanimSartlari),
-                        _LegalChip(label: 'Cayma Hakkı', url: LegalLinks.caymaHakki),
+                        const Text('Tam rapor ve paylaşım için ödeme adımı',
+                            style: TextStyle(
+                                fontSize: 22, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 12),
+                        Text(_amountText,
+                            style: const TextStyle(
+                                fontSize: 34, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 12),
+                        const Text('Tam rapor ve paylaşım hizmeti',
+                            style: TextStyle(fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 10),
+                        const Text(
+                            'Ödeme sonrasında tam rapor, PDF ve paylaşım linkleri erişime açılır.'),
+                        const SizedBox(height: 14),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 2,
+                          children: [
+                            _LegalChip(
+                                label: 'Ön Bilgilendirme',
+                                url: LegalLinks.onBilgilendirme),
+                            _LegalChip(
+                                label: 'Kullanım Şartları',
+                                url: LegalLinks.kullanimSartlari),
+                            _LegalChip(
+                                label: 'İptal / İade Politikası',
+                                url: LegalLinks.caymaHakki),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text('Destek: destek@kiralayabilirmiyim.com', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w700)),
-            const Spacer(),
-                PrimaryButton(text: '$_amountText Öde, Raporu Aç', loading: loading, onPressed: pay),
+                const SizedBox(height: 12),
+                const Text('Destek: bilgi@riskmetriks.com',
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w700)),
+                const Spacer(),
+                PrimaryButton(
+                    text: '$_amountText Öde ve Tam Raporu Aç',
+                    loading: loading,
+                    onPressed: pay),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: loading ? null : checkPaymentStatusManually,
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Ödemeyi Kontrol Et ve Devam Et'),
+                  label: const Text('Ödeme Durumunu Kontrol Et'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(54),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    side: const BorderSide(color: Color(0xFF0F766E), width: 1.4),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18)),
+                    side:
+                        const BorderSide(color: Color(0xFF0F766E), width: 1.4),
                     foregroundColor: const Color(0xFF0F766E),
-                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                    textStyle: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w900),
                   ),
                 ),
               ],
@@ -188,15 +229,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: Container(
                     width: 260,
                     padding: const EdgeInsets.all(22),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 24, offset: Offset(0, 10))]),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: const [
+                          BoxShadow(
+                              color: Color(0x22000000),
+                              blurRadius: 24,
+                              offset: Offset(0, 10))
+                        ]),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(width: 42, height: 42, child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFF0F766E))),
+                        const SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 3, color: Color(0xFF0F766E))),
                         const SizedBox(height: 18),
-                        Text(loadingMessage, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF123C69))),
+                        Text(loadingMessage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF123C69))),
                         const SizedBox(height: 8),
-                        const Text('Ödeme sayfasını tamamladıktan sonra uygulamaya dönün.', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w700)),
+                        const Text(
+                            'Ödeme sayfasındaki işlemi tamamladıktan sonra uygulamaya dönün.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF64748B),
+                                fontWeight: FontWeight.w700)),
                       ],
                     ),
                   ),
@@ -209,7 +273,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 }
 
-
 class _LegalChip extends StatelessWidget {
   final String label;
   final String url;
@@ -221,7 +284,8 @@ class _LegalChip extends StatelessWidget {
       avatar: const Icon(Icons.open_in_new_rounded, size: 16),
       label: Text(label),
       onPressed: () => LegalLinks.open(context, url),
-      labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F766E)),
+      labelStyle: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFF0F766E)),
       side: const BorderSide(color: Color(0xFF99F6E4)),
       backgroundColor: const Color(0xFFF0FDFA),
     );

@@ -39,12 +39,17 @@ class FlowScaffold extends StatelessWidget {
     final scrollPadding = padding.copyWith(
       // Alt CTA butonu klavye açıkken de ekranda kalır. Listeye ekstra alt boşluk
       // vererek aktif input ve güven notu butonun altında kaybolmasın.
-      bottom: padding.bottom + (bottom == null ? 24 : (keyboardOpen ? 120 : 110)),
+      bottom:
+          padding.bottom + (bottom == null ? 24 : (keyboardOpen ? 120 : 110)),
     );
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: title == null && !showBack ? null : AppBar(title: title == null ? null : Text(title!), automaticallyImplyLeading: showBack),
+      appBar: title == null && !showBack
+          ? null
+          : AppBar(
+              title: title == null ? null : Text(title!),
+              automaticallyImplyLeading: showBack),
       body: SafeArea(
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
@@ -68,9 +73,14 @@ class FlowScaffold extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.96),
+                    color: Theme.of(context)
+                        .scaffoldBackgroundColor
+                        .withOpacity(0.96),
                     boxShadow: const [
-                      BoxShadow(color: Color(0x14000000), blurRadius: 14, offset: Offset(0, -4)),
+                      BoxShadow(
+                          color: Color(0x14000000),
+                          blurRadius: 14,
+                          offset: Offset(0, -4)),
                     ],
                   ),
                   child: bottom!,
@@ -80,7 +90,6 @@ class FlowScaffold extends StatelessWidget {
     );
   }
 }
-
 
 String turkishUpper(String value) {
   return value
@@ -117,22 +126,53 @@ class FlowHeader extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
-        gradient: const LinearGradient(colors: [Color(0xFF073B4D), Color(0xFF123C69), Color(0xFF0B2545)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 24, offset: Offset(0, 10))],
+        gradient: const LinearGradient(
+            colors: [Color(0xFF073B4D), Color(0xFF123C69), Color(0xFF0B2545)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x22000000), blurRadius: 24, offset: Offset(0, 10))
+        ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(width: 58, height: 58, decoration: const BoxDecoration(color: FlowColors.softGreen, shape: BoxShape.circle), child: Icon(icon, color: FlowColors.green, size: 32)),
+        Container(
+            width: 58,
+            height: 58,
+            decoration: const BoxDecoration(
+                color: FlowColors.softGreen, shape: BoxShape.circle),
+            child: Icon(icon, color: FlowColors.green, size: 32)),
         const SizedBox(height: 16),
-        Text(turkishUpper(eyebrow), style: const TextStyle(color: Color(0xFFA7F3D0), fontSize: 12, letterSpacing: 1.2, fontWeight: FontWeight.w900)),
+        Text(turkishUpper(eyebrow),
+            style: const TextStyle(
+                color: Color(0xFFA7F3D0),
+                fontSize: 12,
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w900)),
         const SizedBox(height: 6),
-        Text(title, style: const TextStyle(color: Colors.white, fontSize: 27, height: 1.06, fontWeight: FontWeight.w900, letterSpacing: -0.7)),
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 27,
+                height: 1.06,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.7)),
         const SizedBox(height: 10),
         if (richSubtitle == null)
-          Text(subtitle, style: const TextStyle(color: Color(0xFFE6F4F1), fontSize: 15.5, height: 1.38, fontWeight: FontWeight.w600))
+          Text(subtitle,
+              style: const TextStyle(
+                  color: Color(0xFFE6F4F1),
+                  fontSize: 15.5,
+                  height: 1.38,
+                  fontWeight: FontWeight.w600))
         else
           RichText(
             text: TextSpan(
-              style: const TextStyle(color: Color(0xFFE6F4F1), fontSize: 15.5, height: 1.38, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                  color: Color(0xFFE6F4F1),
+                  fontSize: 15.5,
+                  height: 1.38,
+                  fontWeight: FontWeight.w600),
               children: [richSubtitle!],
             ),
           ),
@@ -147,7 +187,13 @@ class PremiumCard extends StatelessWidget {
   final Color background;
   final Color borderColor;
   final VoidCallback? onTap;
-  const PremiumCard({super.key, required this.child, this.padding = const EdgeInsets.all(18), this.background = Colors.white, this.borderColor = FlowColors.border, this.onTap});
+  const PremiumCard(
+      {super.key,
+      required this.child,
+      this.padding = const EdgeInsets.all(18),
+      this.background = Colors.white,
+      this.borderColor = FlowColors.border,
+      this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -158,12 +204,16 @@ class PremiumCard extends StatelessWidget {
         color: background,
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(22),
-        boxShadow: const [BoxShadow(color: Color(0x0D000000), blurRadius: 18, offset: Offset(0, 8))],
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x0D000000), blurRadius: 18, offset: Offset(0, 8))
+        ],
       ),
       child: child,
     );
     if (onTap == null) return card;
-    return InkWell(borderRadius: BorderRadius.circular(22), onTap: onTap, child: card);
+    return InkWell(
+        borderRadius: BorderRadius.circular(22), onTap: onTap, child: card);
   }
 }
 
@@ -173,16 +223,31 @@ class TrustNotice extends StatelessWidget {
   final Color background;
   final Color borderColor;
   final Color iconColor;
-  const TrustNotice({super.key, required this.icon, required this.text, this.background = FlowColors.softGreen, this.borderColor = const Color(0xFFBFE8DD), this.iconColor = FlowColors.green});
+  const TrustNotice(
+      {super.key,
+      required this.icon,
+      required this.text,
+      this.background = FlowColors.softGreen,
+      this.borderColor = const Color(0xFFBFE8DD),
+      this.iconColor = FlowColors.green});
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: background, border: Border.all(color: borderColor), borderRadius: BorderRadius.circular(18)),
+      decoration: BoxDecoration(
+          color: background,
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(18)),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(icon, color: iconColor, size: 22),
         const SizedBox(width: 10),
-        Expanded(child: Text(text, style: const TextStyle(fontSize: 13.5, height: 1.38, fontWeight: FontWeight.w600, color: Color(0xFF334155)))),
+        Expanded(
+            child: Text(text,
+                style: const TextStyle(
+                    fontSize: 13.5,
+                    height: 1.38,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF334155)))),
       ]),
     );
   }
@@ -198,7 +263,17 @@ class FlowTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
   final String? prefixText;
-  const FlowTextField({super.key, required this.controller, required this.label, this.helper, this.keyboardType, this.maxLength, this.obscureText = false, this.textCapitalization = TextCapitalization.none, this.inputFormatters, this.prefixText});
+  const FlowTextField(
+      {super.key,
+      required this.controller,
+      required this.label,
+      this.helper,
+      this.keyboardType,
+      this.maxLength,
+      this.obscureText = false,
+      this.textCapitalization = TextCapitalization.none,
+      this.inputFormatters,
+      this.prefixText});
   @override
   Widget build(BuildContext context) {
     final keyboardBottom = MediaQuery.of(context).viewInsets.bottom;
@@ -212,7 +287,11 @@ class FlowTextField extends StatelessWidget {
       // Klavye + sabit CTA butonu kadar alan bırakır; böylece alan odaklanınca
       // otomatik kaydırma tüm form ekranlarında daha güvenilir çalışır.
       scrollPadding: EdgeInsets.only(bottom: keyboardBottom + 150),
-      decoration: InputDecoration(labelText: label, helperText: helper, counterText: maxLength == null ? null : '', prefixText: prefixText),
+      decoration: InputDecoration(
+          labelText: label,
+          helperText: helper,
+          counterText: maxLength == null ? null : '',
+          prefixText: prefixText),
     );
   }
 }
@@ -220,7 +299,8 @@ class FlowTextField extends StatelessWidget {
 class FlowStepList extends StatelessWidget {
   final List<String> items;
   final int activeIndex;
-  const FlowStepList({super.key, required this.items, required this.activeIndex});
+  const FlowStepList(
+      {super.key, required this.items, required this.activeIndex});
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -229,9 +309,21 @@ class FlowStepList extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(children: [
-            Container(width: 30, height: 30, decoration: BoxDecoration(shape: BoxShape.circle, color: active ? FlowColors.green : const Color(0xFFE2E8F0)), child: Icon(active ? Icons.check_rounded : Icons.more_horiz, color: Colors.white, size: 18)),
+            Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: active ? FlowColors.green : const Color(0xFFE2E8F0)),
+                child: Icon(active ? Icons.check_rounded : Icons.more_horiz,
+                    color: Colors.white, size: 18)),
             const SizedBox(width: 12),
-            Expanded(child: Text(items[i], style: TextStyle(fontWeight: active ? FontWeight.w900 : FontWeight.w700, color: active ? FlowColors.navyDark : FlowColors.muted))),
+            Expanded(
+                child: Text(items[i],
+                    style: TextStyle(
+                        fontWeight: active ? FontWeight.w900 : FontWeight.w700,
+                        color:
+                            active ? FlowColors.navyDark : FlowColors.muted))),
           ]),
         );
       }),

@@ -24,9 +24,9 @@ class AppState {
     paymentSuccessHandled = true;
     return true;
   }
+
   String? applicationType;
   num? applicationAmount;
   num serviceFeeAmount = 9;
   String serviceFeeCurrency = 'TL';
 }
-

@@ -49,16 +49,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (loading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Geçmiş Raporlarım')),
+      appBar: AppBar(title: const Text('Geçmiş Değerlendirmelerim')),
       body: SafeArea(
         minimum: const EdgeInsets.all(16),
         child: error != null
             ? Center(child: Text(error!))
             : items.isEmpty
-                ? const Center(child: Text('Henüz rapor bulunmuyor.'))
+                ? const Center(child: Text('Henüz değerlendirme bulunmuyor.'))
                 : ListView.separated(
                     itemCount: items.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -66,8 +67,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       final item = items[index] as Map<String, dynamic>;
                       return Card(
                         child: ListTile(
-                          title: Text(label(item['application_type']?.toString())),
-                          subtitle: Text('Durum: ${item['status'] ?? '-'}'),
+                          title:
+                              Text(label(item['application_type']?.toString())),
+                          subtitle: Text('Son durum: ${item['status'] ?? '-'}'),
                           trailing: const Icon(Icons.chevron_right),
                         ),
                       );

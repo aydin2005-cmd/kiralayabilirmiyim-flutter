@@ -7,7 +7,6 @@ import 'api_client.dart';
 import 'app_state.dart';
 
 class PaymentFlow {
-
   static Future<bool> checkCurrentStatus({
     required ApiClient api,
   }) async {
@@ -22,10 +21,12 @@ class PaymentFlow {
     }
     final paymentStatus = statusResponse['status']?.toString().toLowerCase();
     if (paymentStatus == 'failed' || paymentStatus == 'cancelled') {
-      throw ApiException('Ödeme tamamlanamadı. Kartınızdan tahsilat yapılmadıysa tekrar deneyebilirsiniz.');
+      throw ApiException(
+          'Ödeme tamamlanamadı. Kartınızdan tahsilat yapılmadıysa tekrar deneyebilirsiniz.');
     }
     return false;
   }
+
   static Future<bool> startAndWait({
     required BuildContext context,
     required ApiClient api,
@@ -53,7 +54,8 @@ class PaymentFlow {
 
     final checkoutUrl = response['checkout_url']?.toString();
     if (checkoutUrl == null || checkoutUrl.isEmpty) {
-      throw ApiException(response['message']?.toString() ?? 'Ödeme sayfası oluşturulamadı.');
+      throw ApiException(
+          response['message']?.toString() ?? 'Ödeme sayfası oluşturulamadı.');
     }
 
     onStatus('Güvenli iyzico ödeme sayfası açılıyor...');
@@ -77,9 +79,11 @@ class PaymentFlow {
           AppState.instance.paymentCompleted = true;
           return true;
         }
-        final paymentStatus = statusResponse['status']?.toString().toLowerCase();
+        final paymentStatus =
+            statusResponse['status']?.toString().toLowerCase();
         if (paymentStatus == 'failed' || paymentStatus == 'cancelled') {
-          throw ApiException('Ödeme tamamlanamadı. Kartınızdan tahsilat yapılmadıysa tekrar deneyebilirsiniz.');
+          throw ApiException(
+              'Ödeme tamamlanamadı. Kartınızdan tahsilat yapılmadıysa tekrar deneyebilirsiniz.');
         }
         lastTransientError = null;
       } on ApiException {
@@ -94,8 +98,10 @@ class PaymentFlow {
     }
 
     if (lastTransientError != null) {
-      throw ApiException('Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar deneyiniz.');
+      throw ApiException(
+          'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar deneyiniz.');
     }
-    throw ApiException('Ödeme sonucu henüz alınamadı. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar kontrol edin.');
+    throw ApiException(
+        'Ödeme sonucu henüz alınamadı. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar kontrol edin.');
   }
 }

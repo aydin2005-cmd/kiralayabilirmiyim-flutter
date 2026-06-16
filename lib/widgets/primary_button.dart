@@ -49,7 +49,8 @@ class PrimaryButton extends StatelessWidget {
           disabledBackgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
           disabledForegroundColor: const Color(0xFF64748B),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           textStyle: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w900,
@@ -60,7 +61,8 @@ class PrimaryButton extends StatelessWidget {
             ? const SizedBox(
                 height: 22,
                 width: 22,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,

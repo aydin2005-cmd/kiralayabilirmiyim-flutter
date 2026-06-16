@@ -23,44 +23,101 @@ class _CarRentalFormScreenState extends State<CarRentalFormScreen> {
   final api = ApiClient();
 
   Future<void> submit() async {
-    if (dailyController.text.isEmpty || durationController.text.isEmpty || selectedVehicleSegment == null || selectedCity == null) return _showError('Lütfen zorunlu alanları doldurun.');
+    if (dailyController.text.isEmpty ||
+        durationController.text.isEmpty ||
+        selectedVehicleSegment == null ||
+        selectedCity == null)
+      return _showError('Lütfen zorunlu alanları doldurun.');
     final id = AppState.instance.applicationId;
-    if (id == null) return _showError('Başvuru bulunamadı. Lütfen tekrar deneyin.');
+    if (id == null)
+      return _showError('Başvuru bulunamadı. Lütfen tekrar deneyin.');
     setState(() => loading = true);
     try {
       final dailyAmount = num.tryParse(dailyController.text) ?? 0;
       final rentalDays = int.tryParse(durationController.text) ?? 1;
-      await api.patch('/applications/$id/rental-details', {'daily_rental_amount': dailyAmount, 'rental_duration_days': rentalDays, 'vehicle_class': selectedVehicleSegment, 'city': selectedCity, 'deposit_amount': num.tryParse(depositController.text)});
+      await api.patch('/applications/$id/rental-details', {
+        'daily_rental_amount': dailyAmount,
+        'rental_duration_days': rentalDays,
+        'vehicle_class': selectedVehicleSegment,
+        'city': selectedCity,
+        'deposit_amount': num.tryParse(depositController.text)
+      });
       AppState.instance.applicationAmount = dailyAmount * rentalDays;
       AppState.instance.applicationType = 'car_rental';
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const PdfUploadScreen()));
-    } catch (e) { _showError(e.toString()); } finally { if (mounted) setState(() => loading = false); }
+      Navigator.push(
+          context, MaterialPageRoute(builder: (_) => const PdfUploadScreen()));
+    } catch (e) {
+      _showError(e.toString());
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
   }
-  void _showError(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 5)));
+
+  void _showError(String text) => ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 5)));
 
   @override
   Widget build(BuildContext context) {
     return FlowScaffold(
       title: 'Araç Kiralama',
       children: [
-        const FlowHeader(icon: Icons.directions_car_filled_outlined, eyebrow: 'Tutar bilgisi', title: 'Kiralama bedelini hesaplayalım', subtitle: 'Günlük bedel ve süreye göre toplam kiralama tutarı değerlendirmeye alınır.'),
+        const FlowHeader(
+            icon: Icons.directions_car_filled_outlined,
+            eyebrow: 'Tutar bilgisi',
+            title: 'Araç kiralama bilgilerini girin',
+            subtitle:
+                'Günlük bedel ve kiralama süresi üzerinden toplam tutar hesaplanır ve değerlendirmeye alınır.'),
         const SizedBox(height: 22),
-        PremiumCard(child: Column(children: [
-          FlowTextField(controller: dailyController, label: 'Günlük kiralama bedeli', keyboardType: TextInputType.number),
+        PremiumCard(
+            child: Column(children: [
+          FlowTextField(
+              controller: dailyController,
+              label: 'Günlük kiralama bedeli (TL)',
+              keyboardType: TextInputType.number),
           const SizedBox(height: 14),
-          FlowTextField(controller: durationController, label: 'Kiralama süresi (gün)', keyboardType: TextInputType.number),
+          FlowTextField(
+              controller: durationController,
+              label: 'Kiralama süresi (gün)',
+              keyboardType: TextInputType.number),
           const SizedBox(height: 14),
-          DropdownButtonFormField<String>(value: selectedVehicleSegment, decoration: const InputDecoration(labelText: 'Araç segmenti', helperText: 'Segment karar sonucunu değiştirmez; rapor bilgisi için alınır.'), items: VehicleSegments.items.map((segment) => DropdownMenuItem(value: segment.code, child: Text(segment.displayText))).toList(), onChanged: (value) => setState(() => selectedVehicleSegment = value)),
+          DropdownButtonFormField<String>(
+              value: selectedVehicleSegment,
+              decoration: const InputDecoration(
+                  labelText: 'Araç segmenti',
+                  helperText:
+                      'Segment bilgisi raporda açıklama amacıyla yer alır.'),
+              items: VehicleSegments.items
+                  .map((segment) => DropdownMenuItem(
+                      value: segment.code, child: Text(segment.displayText)))
+                  .toList(),
+              onChanged: (value) =>
+                  setState(() => selectedVehicleSegment = value)),
           const SizedBox(height: 14),
-          DropdownButtonFormField<String>(value: selectedCity, decoration: const InputDecoration(labelText: 'Şehir'), items: TurkeyLocations.cities.map((city) => DropdownMenuItem(value: city, child: Text(city))).toList(), onChanged: (value) => setState(() => selectedCity = value)),
+          DropdownButtonFormField<String>(
+              value: selectedCity,
+              isExpanded: true,
+              menuMaxHeight: 320,
+              decoration: const InputDecoration(labelText: 'İl'),
+              items: TurkeyLocations.cities
+                  .map((city) =>
+                      DropdownMenuItem(value: city, child: Text(city)))
+                  .toList(),
+              onChanged: (value) => setState(() => selectedCity = value)),
           const SizedBox(height: 14),
-          FlowTextField(controller: depositController, label: 'Depozito / provizyon (opsiyonel)', keyboardType: TextInputType.number),
+          FlowTextField(
+              controller: depositController,
+              label: 'Depozito / provizyon (varsa)',
+              keyboardType: TextInputType.number),
         ])),
         const SizedBox(height: 14),
-        const TrustNotice(icon: Icons.info_outline_rounded, text: 'Araç kiralama değerlendirmesinde tutar, günlük bedel x kiralama süresi olarak hesaplanır.'),
+        const TrustNotice(
+            icon: Icons.info_outline_rounded,
+            text:
+                'Araç kiralama değerlendirmesinde tutar, günlük bedel x kiralama süresi olarak hesaplanır.'),
       ],
-      bottom: PrimaryButton(text: 'Devam Et', loading: loading, onPressed: submit),
+      bottom:
+          PrimaryButton(text: 'Devam Et', loading: loading, onPressed: submit),
     );
   }
 }

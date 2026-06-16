@@ -26,38 +26,83 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   final api = ApiClient();
   Timer? timer;
   @override
-  void initState() { super.initState(); start(); }
+  void initState() {
+    super.initState();
+    start();
+  }
+
   @override
-  void dispose() { timer?.cancel(); super.dispose(); }
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
   Future<void> start() async {
-    timer = Timer.periodic(const Duration(milliseconds: 850), (_) { if (mounted) setState(() => index = (index + 1).clamp(0, messages.length - 1)); });
+    timer = Timer.periodic(const Duration(milliseconds: 850), (_) {
+      if (mounted)
+        setState(() => index = (index + 1).clamp(0, messages.length - 1));
+    });
     final appId = AppState.instance.applicationId;
-    if (appId == null) { setState(() { failed = true; errorMessage = 'Başvuru bulunamadı. Lütfen tekrar deneyin.'; }); return; }
+    if (appId == null) {
+      setState(() {
+        failed = true;
+        errorMessage = 'Başvuru bulunamadı. Lütfen tekrar deneyin.';
+      });
+      return;
+    }
     try {
-      final response = await api.post('/analysis/start', {'application_id': appId});
+      final response =
+          await api.post('/analysis/start', {'application_id': appId});
       final analysisId = response['id']?.toString();
-      if (analysisId == null || analysisId.isEmpty) throw ApiException('Analiz başlatılamadı.');
+      if (analysisId == null || analysisId.isEmpty)
+        throw ApiException('Analiz başlatılamadı.');
       AppState.instance.analysisId = analysisId;
       await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ResultScreen()));
-    } catch (e) { if (mounted) setState(() { failed = true; errorMessage = e.toString(); }); }
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => const ResultScreen()));
+    } catch (e) {
+      if (mounted)
+        setState(() {
+          failed = true;
+          errorMessage = e.toString();
+        });
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     if (failed) {
-      return FlowScaffold(title: 'Analiz', children: [
-        const FlowHeader(icon: Icons.error_outline_rounded, eyebrow: 'İşlem tamamlanamadı', title: 'Değerlendirme şu anda yapılamadı', subtitle: 'Lütfen bilgileri kontrol edip tekrar deneyin.'),
-        const SizedBox(height: 20),
-        PremiumCard(child: Text(errorMessage ?? 'Analiz tamamlanamadı.', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700))),
-      ], bottom: PrimaryButton(text: 'Geri Dön', onPressed: () => Navigator.pop(context)));
+      return FlowScaffold(
+          title: 'Değerlendirme',
+          children: [
+            const FlowHeader(
+                icon: Icons.error_outline_rounded,
+                eyebrow: 'İşlem tamamlanamadı',
+                title: 'Değerlendirme tamamlanamadı',
+                subtitle:
+                    'Lütfen başvuru bilgilerini kontrol edip tekrar deneyin.'),
+            const SizedBox(height: 20),
+            PremiumCard(
+                child: Text(errorMessage ?? 'Değerlendirme tamamlanamadı.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.w700))),
+          ],
+          bottom: PrimaryButton(
+              text: 'Geri Dön', onPressed: () => Navigator.pop(context)));
     }
     return FlowScaffold(
       showBack: false,
       children: [
-        const FlowHeader(icon: Icons.auto_awesome_rounded, eyebrow: 'Değerlendiriliyor', title: 'Raporunuz analiz ediliyor', subtitle: 'Bu işlem sırasında rapor formatı, kimlik eşleşmesi, finansal göstergeler ve karar kriterleri kontrol edilir.'),
+        const FlowHeader(
+            icon: Icons.auto_awesome_rounded,
+            eyebrow: 'Değerlendiriliyor',
+            title: 'Raporunuz kontrol ediliyor',
+            subtitle:
+                'Bu aşamada rapor formatı, kimlik eşleşmesi, rapor tarihi ve finansal göstergeler otomatik olarak kontrol edilir.'),
         const SizedBox(height: 24),
-        PremiumCard(child: Column(children: [
+        PremiumCard(
+            child: Column(children: [
           const SizedBox(height: 8),
           const CircularProgressIndicator(),
           const SizedBox(height: 22),

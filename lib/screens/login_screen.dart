@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_client.dart';
+import '../services/legal_links.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/flow_widgets.dart';
 import 'otp_screen.dart';
@@ -14,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final phoneController = TextEditingController();
   bool loading = false;
+  bool kvkkNoticeAccepted = false;
   final api = ApiClient();
 
   String? normalizedTurkeyMobile() {
@@ -31,10 +33,16 @@ class _LoginScreenState extends State<LoginScreen> {
     if (phone == null)
       return _showError(
           'Lütfen geçerli bir Türkiye cep telefonu numarası giriniz.');
+
+    if (!kvkkNoticeAccepted) {
+      return _showError(
+          'SMS kodu gönderebilmek için Kişisel Verilerin İşlenmesine İlişkin Aydınlatma Metni’ni okuyup onaylamanız gerekir.');
+    }
+
     setState(() => loading = true);
     try {
       final response = await api.post('/auth/otp/start',
-          {'phone_number': phone, 'kvkk_notice_accepted': true});
+          {'phone_number': phone, 'kvkk_notice_accepted': kvkkNoticeAccepted});
       final challengeId = response['challenge_id']?.toString();
       if (challengeId == null || challengeId.isEmpty)
         throw ApiException('Doğrulama kaydı oluşturulamadı.');
@@ -86,8 +94,59 @@ class _LoginScreenState extends State<LoginScreen> {
               text: 'Telefonunuza SMS doğrulama kodu gönderilecektir.'),
         ])),
       ],
-      bottom: PrimaryButton(
-          text: 'SMS Kodu Gönder', loading: loading, onPressed: requestOtp),
+      bottom: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            padding: const EdgeInsets.fromLTRB(4, 2, 4, 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: kvkkNoticeAccepted,
+                  onChanged: loading
+                      ? null
+                      : (value) =>
+                          setState(() => kvkkNoticeAccepted = value ?? false),
+                  title: const Text(
+                    'KVKK Aydınlatma Metni’ni okudum, onaylıyorum.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.25,
+                      color: FlowColors.navyDark,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: loading
+                        ? null
+                        : () => LegalLinks.open(context, LegalLinks.kvkk),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 15),
+                    label: const Text('KVKK KVKK Aydınlatma Metni’ni Aç'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          PrimaryButton(
+            text: 'SMS Kodu Gönder',
+            loading: loading,
+            onPressed: requestOtp,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1,7 +1,7 @@
 name: kiralayabilir_miyim
 description: Kiralayabilir Miyim MVP Flutter app skeleton.
 publish_to: "none"
-version: 0.1.0+1
+version: 0.1.0+2
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -34,4 +34,5 @@ flutter_launcher_icons:
   image_path: "assets/app_icon.png"
   remove_alpha_ios: true
   min_sdk_android: 21
+
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,15 +17,43 @@ class ApiClient {
   static const _tokenKey = 'access_token';
 
   Future<void> saveToken(String token) async {
-    await _storage.write(key: _tokenKey, value: token);
+    try {
+      await _storage.write(key: _tokenKey, value: token);
+    } on PlatformException {
+      await _resetSecureStorage();
+      await _storage.write(key: _tokenKey, value: token);
+    }
   }
 
   Future<String?> getToken() async {
-    return _storage.read(key: _tokenKey);
+    try {
+      return await _storage.read(key: _tokenKey);
+    } on PlatformException {
+      await _resetSecureStorage();
+      return null;
+    }
   }
 
   Future<void> clearToken() async {
-    await _storage.delete(key: _tokenKey);
+    try {
+      await _storage.delete(key: _tokenKey);
+    } on PlatformException {
+      await _resetSecureStorage();
+    }
+  }
+
+  Future<void> _resetSecureStorage() async {
+    try {
+      await _storage.delete(key: _tokenKey);
+    } catch (_) {
+      // Best effort cleanup.
+    }
+
+    try {
+      await _storage.deleteAll();
+    } catch (_) {
+      // Best effort cleanup.
+    }
   }
 
   Future<Map<String, String>> _headers() async {

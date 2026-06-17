@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? null
                         : () => LegalLinks.open(context, LegalLinks.kvkk),
                     icon: const Icon(Icons.open_in_new_rounded, size: 15),
-                    label: const Text('KVKK KVKK Aydınlatma Metni’ni Aç'),
+                    label: const Text('KVKK Aydınlatma Metni’ni Aç'),
                   ),
                 ),
               ],

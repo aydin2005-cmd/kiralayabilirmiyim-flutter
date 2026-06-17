@@ -67,6 +67,10 @@ class _PdfUploadScreenState extends State<PdfUploadScreen> {
         return;
       }
 
+      if (_isTerminalValidationFailure(status)) {
+        throw ApiException(_validationErrorMessage(response));
+      }
+
       setState(() {
         loadingMessage = 'Findeks raporunuz doğrulanıyor';
       });
@@ -85,27 +89,84 @@ class _PdfUploadScreenState extends State<PdfUploadScreen> {
           return;
         }
 
-        if (status == 'invalid' || status == 'failed' || status == 'rejected') {
-          final error = statusResponse['validation_error']?.toString();
-          throw ApiException(
-            error == null || error.isEmpty
-                ? 'Rapor doğrulanamadı. Lütfen resmi ve güncel Findeks PDF raporunu yükleyiniz.'
-                : error,
-          );
+        if (_isTerminalValidationFailure(status)) {
+          throw ApiException(_validationErrorMessage(statusResponse));
         }
       }
 
       throw ApiException(
           'Rapor doğrulama işlemi beklenenden uzun sürdü. Lütfen kısa bir süre sonra tekrar deneyiniz.');
     } catch (e) {
-      _showError(e.toString());
+      _showError(_friendlyError(e));
     } finally {
       if (mounted) setState(() => loading = false);
     }
   }
 
-  void _showError(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _showError(String text) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(text),
+          duration: const Duration(seconds: 10),
+        ),
+      );
+
+  bool _isTerminalValidationFailure(String? status) {
+    final value = status?.toLowerCase().trim();
+
+    if (value == null || value.isEmpty) return false;
+
+    final stillProcessing = value == 'pending' ||
+        value == 'processing' ||
+        value == 'queued' ||
+        value == 'validating' ||
+        value == 'in_progress' ||
+        value == 'uploaded' ||
+        value == 'created';
+
+    if (value == 'valid' || stillProcessing) return false;
+
+    return true;
+  }
+
+  String _validationErrorMessage(Map<String, dynamic> response) {
+    final backendMessage = response['validation_error']?.toString().trim();
+    if (backendMessage != null && backendMessage.isNotEmpty) {
+      return backendMessage;
+    }
+
+    final detail = response['detail']?.toString().trim();
+    if (detail != null && detail.isNotEmpty) {
+      return detail;
+    }
+
+    final errorMessage = response['error_message']?.toString().trim();
+    if (errorMessage != null && errorMessage.isNotEmpty) {
+      return errorMessage;
+    }
+
+    final status =
+        response['validation_status']?.toString().toLowerCase().trim();
+
+    if (status == 'identity_mismatch') {
+      return 'Kimlik bilgileri eşleşmedi. Girdiğiniz ad-soyad veya TCKN bilgileri, yüklediğiniz Findeks raporundaki bilgilerle eşleşmedi. Lütfen başvuruyu yeniden başlatın ve bilgilerinizi Findeks raporunuzdaki bilgilerle uyumlu olacak şekilde girin.';
+    }
+
+    if (status == 'expired_report' || status == 'old_report') {
+      return 'Yüklenen Findeks raporu güncel değil. Lütfen rapor tarihi en fazla 15 gün eski olan güncel Findeks PDF raporunu yükleyin.';
+    }
+
+    if (status == 'suspected_modified_pdf' ||
+        status == 'invalid_pdf' ||
+        status == 'unsupported_format') {
+      return 'Rapor doğrulanamadı. Lütfen Findeks’ten alınmış güncel ve orijinal PDF raporunu yükleyin. Fotoğraf, ekran görüntüsü, taranmış belge veya düzenlenmiş dosya kabul edilmez.';
+    }
+
+    return 'Rapor doğrulanamadı. Lütfen Findeks’ten alınmış güncel ve orijinal PDF raporunu yükleyin.';
+  }
+
+  String _friendlyError(Object error) {
+    return error.toString().replaceFirst('ApiException: ', '');
+  }
 
   @override
   Widget build(BuildContext context) {

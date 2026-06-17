@@ -25,12 +25,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   String loadingMessage = 'Ödeme kontrol ediliyor...';
+  String? paymentNotice;
   final api = ApiClient();
 
   Future<void> pay() async {
     setState(() {
       loading = true;
       loadingMessage = 'Ödeme başlatılıyor...';
+      paymentNotice = null;
     });
     try {
       final ok = await PaymentFlow.startAndWait(
@@ -52,7 +54,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       Navigator.push(
           context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
     } catch (e) {
-      _showError(_friendlyPaymentError(e));
+      final message = _friendlyPaymentError(e);
+      if (mounted) setState(() => paymentNotice = message);
+      if (!_isPendingPaymentMessage(message)) {
+        _showError(message);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -62,12 +68,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
     setState(() {
       loading = true;
       loadingMessage = 'Ödeme durumu kontrol ediliyor...';
+      paymentNotice = null;
     });
     try {
       final paid = await PaymentFlow.checkCurrentStatus(api: api);
       if (!paid) {
         throw ApiException(
-            'Ödeme sonucu henüz alınamadı. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar kontrol edin.');
+            'Ödeme sonucunuz henüz bankadan veya ödeme kuruluşundan doğrulanmadı. Ödeme yaptıysanız lütfen kısa bir süre bekleyip “Ödeme Durumunu Kontrol Et” düğmesine basınız. Sorun devam ederse destek için bilgi@riskmetriks.com adresine yazınız.');
       }
       if (!mounted) return;
       if (!AppState.instance.markPaymentSuccessHandled()) {
@@ -80,7 +87,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       Navigator.push(
           context, MaterialPageRoute(builder: (_) => const AnalysisScreen()));
     } catch (e) {
-      _showError(_friendlyPaymentError(e));
+      final message = _friendlyPaymentError(e);
+      if (mounted) setState(() => paymentNotice = message);
+      if (!_isPendingPaymentMessage(message)) {
+        _showError(message);
+      }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -89,15 +100,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void _showError(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
+  String get _pendingPaymentNotice =>
+      'Ödeme sonucunuz henüz bankadan veya ödeme kuruluşundan doğrulanmadı.\n\n'
+      'Ödeme yaptıysanız lütfen kısa bir süre bekleyip “Ödeme Durumunu Kontrol Et” düğmesine basınız.\n\n'
+      'Kartınızdan ödeme alındığını düşünüyorsanız ve raporunuz açılmıyorsa destek için bilgi@riskmetriks.com adresine yazınız.';
+
+  bool _isPendingPaymentMessage(String text) => text.contains(
+      'Ödeme sonucunuz henüz bankadan veya ödeme kuruluşundan doğrulanmadı');
+
   String _friendlyPaymentError(Object error) {
     final text = error.toString();
-    if (text.toLowerCase().contains('clientexception') ||
-        text.toLowerCase().contains('socketexception') ||
-        text.toLowerCase().contains('connection') ||
-        text.toLowerCase().contains('timed out')) {
-      return 'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra “Ödeme Durumunu Kontrol Et” düğmesine basınız.';
+    final lower = text.toLowerCase();
+    if (lower.contains('clientexception') ||
+        lower.contains('socketexception') ||
+        lower.contains('connection') ||
+        lower.contains('timed out') ||
+        lower.contains('ödeme sonucu') ||
+        lower.contains('henüz alınamadı') ||
+        lower.contains('doğrulanmadı')) {
+      return _pendingPaymentNotice;
     }
-    return text;
+    return text.replaceFirst('ApiException: ', '');
   }
 
   Future<void> _showPaymentSuccessSheet() async {
@@ -192,6 +215,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (paymentNotice != null) ...[
+                  _PaymentNoticeCard(message: paymentNotice!),
+                  const SizedBox(height: 12),
+                ],
                 const Text('Destek: bilgi@riskmetriks.com',
                     style: TextStyle(
                         fontSize: 13,
@@ -255,7 +282,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 color: Color(0xFF123C69))),
                         const SizedBox(height: 8),
                         const Text(
-                            'Ödeme sayfasındaki işlemi tamamladıktan sonra uygulamaya dönün.',
+                            'Ödeme sayfasındaki işlemi tamamladıktan sonra uygulamaya dönebilirsiniz.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 13,
@@ -268,6 +295,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _PaymentNoticeCard extends StatelessWidget {
+  final String message;
+  const _PaymentNoticeCard({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: const Color(0xFFFFFBEB),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline_rounded, color: Color(0xFFB45309)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.45,
+                  color: Color(0xFF78350F),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -58,7 +58,7 @@ class PaymentFlow {
           response['message']?.toString() ?? 'Ödeme sayfası oluşturulamadı.');
     }
 
-    onStatus('Güvenli iyzico ödeme sayfası açılıyor...');
+    onStatus('Güvenli ödeme sayfası açılıyor...');
     final uri = Uri.parse(checkoutUrl);
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened) {
@@ -99,9 +99,9 @@ class PaymentFlow {
 
     if (lastTransientError != null) {
       throw ApiException(
-          'Ödeme sonucu kontrol edilemedi. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar deneyiniz.');
+          'Ödeme sonucunuz henüz bankadan veya ödeme kuruluşundan doğrulanmadı. Ödeme yaptıysanız lütfen kısa bir süre bekleyip “Ödeme Durumunu Kontrol Et” düğmesine basınız. Sorun devam ederse destek için bilgi@riskmetriks.com adresine yazınız.');
     }
     throw ApiException(
-        'Ödeme sonucu henüz alınamadı. Ödemeyi tamamladıysanız birkaç saniye sonra tekrar kontrol edin.');
+        'Ödeme sonucunuz henüz bankadan veya ödeme kuruluşundan doğrulanmadı. Ödeme yaptıysanız lütfen kısa bir süre bekleyip “Ödeme Durumunu Kontrol Et” düğmesine basınız. Sorun devam ederse destek için bilgi@riskmetriks.com adresine yazınız.');
   }
 }

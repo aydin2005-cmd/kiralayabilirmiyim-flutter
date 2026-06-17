@@ -9,7 +9,7 @@ class ApiClient {
   // Emulator alternative: --dart-define=API_BASE_URL=http://10.0.2.2:8000
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://staging-api.kiralayabilirmiyim.com',
+    defaultValue: 'https://api.kiralayabilirmiyim.com',
   );
 
   static const _storage = FlutterSecureStorage();

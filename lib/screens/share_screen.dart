@@ -109,13 +109,6 @@ class _ShareScreenState extends State<ShareScreen> {
           'Findeks risk raporunuzu paylaşmak için açık rıza onayını vermeniz gerekir.');
       return;
     }
-
-    if (!AppState.instance.paymentCompleted) {
-      setState(
-          () => error = 'Ödeme tamamlanmadan paylaşım linki oluşturulamaz.');
-      return;
-    }
-
     setState(() {
       loading = true;
       error = null;

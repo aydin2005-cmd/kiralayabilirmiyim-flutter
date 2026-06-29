@@ -165,7 +165,53 @@ class _ResultScreenState extends State<ResultScreen> {
       displayMetrics['average_limit_per_institution'];
 
   Map<String, dynamic> _profileMap(String key) {
-    final value = reportPersonalization[key];
+    final aliases = <String, List<String>>{
+      'payment_order': <String>[
+        'payment_order',
+        'odeme_duzeni',
+        'odeme_duzeni_yorumu',
+        'odeme_aliskanligi',
+        'odeme_performansi',
+        'payment_habit',
+        'payment_habit_summary',
+        'payment_discipline',
+      ],
+      'debt_burden': <String>[
+        'debt_burden',
+        'debt_burden_summary',
+        'current_debt_load',
+        'mevcut_borc_yuku',
+        'mevcut_borc_yuku_yorumu',
+        'borc_yuku',
+        'borc_yuku_yorumu',
+      ],
+      'financial_capacity': <String>[
+        'financial_capacity',
+        'financial_capacity_summary',
+        'finansal_kapasite',
+        'finansal_kapasite_yorumu',
+        'kapasite',
+        'kapasite_yorumu',
+      ],
+      'rent_amount_fit': <String>[
+        'rent_amount_fit',
+        'rent_amount_fit_summary',
+        'application_amount_fit',
+        'kira_tutari_uyumu',
+        'kira_tutari_uyumu_yorumu',
+        'kira_uyumu',
+        'basvuru_tutari_uyumu',
+      ],
+    };
+
+    final candidates = aliases[key] ?? <String>[key];
+    dynamic value;
+    for (final candidate in candidates) {
+      value = reportPersonalization[candidate];
+      if (value != null && value.toString().trim().isNotEmpty) {
+        break;
+      }
+    }
     if (value is Map<String, dynamic>) return value;
     final fromMetrics = displayMetrics['${key}_category'];
     if (fromMetrics is Map<String, dynamic>) return fromMetrics;
@@ -904,7 +950,12 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   String _paymentOrderLabel() {
-    final fromProfile = reportPersonalization['payment_order'];
+    final fromProfile = reportPersonalization['payment_order'] ??
+        reportPersonalization['odeme_duzeni'] ??
+        reportPersonalization['odeme_duzeni_yorumu'] ??
+        reportPersonalization['odeme_aliskanligi'] ??
+        reportPersonalization['payment_habit'] ??
+        reportPersonalization['payment_habit_summary'];
     if (fromProfile is Map<String, dynamic> &&
         (fromProfile['label']?.toString().trim().isNotEmpty ?? false))
       return fromProfile['label'].toString();

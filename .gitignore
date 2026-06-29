@@ -36,3 +36,4 @@ ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
 
 # Env
 .env
+/android/app/*.jks

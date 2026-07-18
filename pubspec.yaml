@@ -1,8 +1,7 @@
 name: kiralayabilir_miyim
 description: Kiralayabilir Miyim MVP Flutter app skeleton.
 publish_to: "none"
-version: 0.1.0+2
-
+version: 1.1.0+3
 environment:
   sdk: ">=3.3.0 <4.0.0"
 

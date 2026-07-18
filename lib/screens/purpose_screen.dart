@@ -5,6 +5,7 @@ import '../services/app_state.dart';
 import '../widgets/flow_widgets.dart';
 import 'home_rental_form_screen.dart';
 import 'car_rental_form_screen.dart';
+import 'history_screen.dart';
 
 class PurposeScreen extends StatefulWidget {
   const PurposeScreen({super.key});
@@ -107,6 +108,20 @@ class _PurposeScreenState extends State<PurposeScreen> {
           subtitle:
               'Günlük bedel ve kiralama süresine göre toplam tutar değerlendirilir.',
           onTap: () => select(ApplicationType.carRental)),
+      const SizedBox(height: 24),
+      const Divider(),
+      const SizedBox(height: 14),
+      option(
+          icon: Icons.description_outlined,
+          title: 'Raporlarım',
+          subtitle:
+              'Geçerli ve geçmiş değerlendirmelerinizi görüntüleyin; erişilebilir raporları yeniden açın.',
+          onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const HistoryScreen(),
+                ),
+              )),
     ]);
   }
 }

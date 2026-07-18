@@ -9,7 +9,26 @@ import 'purpose_screen.dart';
 import '../services/legal_links.dart';
 
 class ResultScreen extends StatefulWidget {
-  const ResultScreen({super.key});
+  const ResultScreen({
+    super.key,
+    this.applicationId,
+    this.analysisId,
+    this.openedFromHistory = false,
+    this.reportDate,
+    this.financialValid,
+    this.financialValidUntil,
+    this.shareAccessAvailable,
+    this.shareAccessExpiresAt,
+  });
+
+  final String? applicationId;
+  final String? analysisId;
+  final bool openedFromHistory;
+  final String? reportDate;
+  final bool? financialValid;
+  final String? financialValidUntil;
+  final bool? shareAccessAvailable;
+  final String? shareAccessExpiresAt;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -39,20 +58,70 @@ class _ResultScreenState extends State<ResultScreen> {
   Map<String, dynamic> paymentHabit = {};
   Map<String, dynamic> reportPersonalization = {};
   Map<String, dynamic> pricingInfo = {};
+  String? _reportDate;
+  String? _financialValidUntil;
+  String? _shareAccessExpiresAt;
+  bool? _financialValid;
+  bool? _shareAccessAvailable;
   final api = ApiClient();
 
   @override
   void initState() {
     super.initState();
+
+    final applicationId = widget.applicationId;
+    final analysisId = widget.analysisId;
+
+    if (applicationId != null && applicationId.isNotEmpty) {
+      AppState.instance.applicationId = applicationId;
+    }
+
+    if (analysisId != null && analysisId.isNotEmpty) {
+      AppState.instance.analysisId = analysisId;
+    }
+
+    _reportDate = widget.reportDate;
+    _financialValid = widget.financialValid;
+    _financialValidUntil = widget.financialValidUntil;
+    _shareAccessAvailable = widget.shareAccessAvailable;
+    _shareAccessExpiresAt = widget.shareAccessExpiresAt;
+
     loadResult();
   }
 
   Future<void> loadResult() async {
     try {
-      final id = AppState.instance.analysisId;
-      if (id == null) throw ApiException('Analiz sonucu bulunamadı.');
+      final id = widget.analysisId ?? AppState.instance.analysisId;
+
+      if (id == null || id.isEmpty) {
+        throw ApiException('Analiz sonucu bulunamadı.');
+      }
+
+      final applicationId =
+          widget.applicationId ?? AppState.instance.applicationId;
+
+      if (applicationId != null && applicationId.isNotEmpty) {
+        AppState.instance.applicationId = applicationId;
+      }
+
+      AppState.instance.analysisId = id;
 
       final response = await api.get('/analysis/$id/result');
+
+      _reportDate = response['report_date']?.toString() ?? _reportDate;
+      _financialValidUntil =
+          response['valid_until']?.toString() ?? _financialValidUntil;
+
+      if (response['financial_valid'] is bool) {
+        _financialValid = response['financial_valid'] == true;
+      }
+
+      if (response['share_access_available'] is bool) {
+        _shareAccessAvailable = response['share_access_available'] == true;
+      }
+
+      _shareAccessExpiresAt = response['share_access_expires_at']?.toString() ??
+          _shareAccessExpiresAt;
 
       final statusValue = response['status']?.toString();
       final readyValue = response['ready'];
@@ -532,22 +601,139 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  bool get _financialEvaluationExpired => _financialValid == false;
+
+  bool get _shareAccessExpired => _shareAccessAvailable == false;
+
+  bool get _canCreateShare => !_shareAccessExpired;
+
+  Widget _lifecycleNotice() {
+    final financialDate = _formatDisplayDate(_financialValidUntil);
+    final shareDate = _formatDisplayDate(_shareAccessExpiresAt);
+
+    final String financialText;
+
+    if (_financialEvaluationExpired) {
+      financialText = financialDate == null
+          ? 'Finansal değerlendirmenin 15 günlük geçerlilik süresi sona erdi. '
+              'Ödeme tamamlanmışsa rapor geçmiş kayıt olarak '
+              'görüntülenmeye devam eder.'
+          : 'Finansal değerlendirmenin 15 günlük geçerlilik süresi '
+              '$financialDate tarihinde sona erdi. Ödeme tamamlanmışsa '
+              'rapor geçmiş kayıt olarak görüntülenmeye devam eder.';
+    } else if (_financialValid == true) {
+      financialText = financialDate == null
+          ? 'Finansal değerlendirme halen geçerlidir.'
+          : 'Finansal değerlendirme $financialDate tarihine kadar geçerlidir.';
+    } else {
+      financialText = financialDate == null
+          ? 'Finansal geçerlilik bilgisi henüz yüklenemedi.'
+          : 'Finansal değerlendirme $financialDate tarihine kadar geçerlidir.';
+    }
+
+    final String shareText;
+
+    if (_shareAccessExpired) {
+      shareText = shareDate == null
+          ? 'Paylaşım ve doğrulama erişimi sona erdi.'
+          : 'Paylaşım ve doğrulama erişimi $shareDate tarihinde sona erdi.';
+    } else if (_shareAccessAvailable == true) {
+      shareText = shareDate == null
+          ? 'Paylaşım ve doğrulama bağlantıları analiz tarihinden '
+              'itibaren 30 gün boyunca erişilebilir.'
+          : 'Paylaşım ve doğrulama erişimi $shareDate tarihine kadar '
+              'kullanılabilir.';
+    } else {
+      shareText = shareDate == null
+          ? 'Paylaşım ve doğrulama erişim bilgisi henüz yüklenemedi.'
+          : 'Paylaşım ve doğrulama erişimi $shareDate tarihine kadar '
+              'kullanılabilir.';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: _financialEvaluationExpired
+            ? const Color(0xFFFFF7ED)
+            : const Color(0xFFF0FDFA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _financialEvaluationExpired
+              ? const Color(0xFFF59E0B)
+              : const Color(0xFF99F6E4),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                _financialEvaluationExpired
+                    ? Icons.history_rounded
+                    : Icons.event_available_outlined,
+                color: _financialEvaluationExpired
+                    ? const Color(0xFFB45309)
+                    : _green,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  financialText,
+                  style: const TextStyle(
+                    height: 1.4,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF334155),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                _shareAccessExpired
+                    ? Icons.link_off_rounded
+                    : Icons.link_rounded,
+                color: _shareAccessExpired ? const Color(0xFF64748B) : _teal,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  shareText,
+                  style: const TextStyle(
+                    height: 1.4,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF334155),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _quickSummaryCards() {
-    final today = DateTime.now();
-    final valid = today.add(const Duration(days: 15));
     final reportDate = _formatDisplayDate(_firstNonEmpty([
+          _reportDate,
           displayMetrics['report_date'],
           financialSummary['report_date'],
           pricingInfo['report_date'],
         ])) ??
-        '${today.day.toString().padLeft(2, '0')}.${today.month.toString().padLeft(2, '0')}.${today.year}';
+        'Belirtilmedi';
+
     final validDate = _formatDisplayDate(_firstNonEmpty([
+          _financialValidUntil,
           displayMetrics['valid_until'],
           displayMetrics['validity_date'],
           financialSummary['valid_until'],
           pricingInfo['valid_until'],
         ])) ??
-        '${valid.day.toString().padLeft(2, '0')}.${valid.month.toString().padLeft(2, '0')}.${valid.year}';
+        'Belirtilmedi';
 
     final items = [
       _SummaryItem(
@@ -560,8 +746,8 @@ class _ResultScreenState extends State<ResultScreen> {
           _formatTl(_applicationAmount())),
       _SummaryItem(
           Icons.calendar_month_outlined, 'Rapor Oluşturma Tarihi', reportDate),
-      _SummaryItem(
-          Icons.event_available_outlined, 'Geçerlilik Tarihi', validDate),
+      _SummaryItem(Icons.event_available_outlined, 'Finansal Geçerlilik Sonu',
+          validDate),
     ];
 
     return Column(
@@ -623,6 +809,19 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void _startPaymentAfterRefundPolicyCheck() {
+    if (_financialEvaluationExpired) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Bu finansal değerlendirmenin 15 günlük geçerlilik süresi '
+            'sona erdi. Güncel bir Findeks raporuyla yeni değerlendirme '
+            'oluşturmanız gerekir.',
+          ),
+        ),
+      );
+      return;
+    }
+
     if (!refundPolicyAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -977,7 +1176,7 @@ class _ResultScreenState extends State<ResultScreen> {
               ),
               _lockedBenefitRow(
                 Icons.share_outlined,
-                '30 gün geçerli doğrulanabilir paylaşım bağlantısı',
+                'analiz tarihinden itibaren 30 gün erişilebilir doğrulama ve paylaşım bağlantısı',
               ),
               _lockedBenefitRow(
                 Icons.verified_user_outlined,
@@ -1690,7 +1889,11 @@ class _ResultScreenState extends State<ResultScreen> {
 
     if (errorMessage != null) {
       return Scaffold(
-          appBar: AppBar(title: const Text('Sonuç')),
+          appBar: AppBar(
+            title: Text(
+              widget.openedFromHistory ? 'Rapor Detayı' : 'Sonuç',
+            ),
+          ),
           body: SafeArea(
               minimum: const EdgeInsets.all(14),
               child: Center(
@@ -1703,7 +1906,11 @@ class _ResultScreenState extends State<ResultScreen> {
       final currency = pricingInfo['service_fee_currency']?.toString() ?? 'TL';
 
       return Scaffold(
-        appBar: AppBar(title: const Text('Sonuç')),
+        appBar: AppBar(
+          title: Text(
+            widget.openedFromHistory ? 'Rapor Detayı' : 'Sonuç',
+          ),
+        ),
         body: Stack(
           children: [
             SafeArea(
@@ -1712,6 +1919,8 @@ class _ResultScreenState extends State<ResultScreen> {
                 padding: const EdgeInsets.only(bottom: 24),
                 children: [
                   _lockedPositiveReport(),
+                  const SizedBox(height: 20),
+                  _lifecycleNotice(),
                   const SizedBox(height: 28),
                   OutlinedButton(
                     onPressed: paymentProcessing
@@ -1734,77 +1943,84 @@ class _ResultScreenState extends State<ResultScreen> {
             if (paymentProcessing) _paymentProcessingOverlay(),
           ],
         ),
-        bottomNavigationBar: SafeArea(
-          top: false,
-          child: Material(
-            color: Colors.white,
-            elevation: 14,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Checkbox(
-                        value: refundPolicyAccepted,
-                        onChanged: paymentProcessing
-                            ? null
-                            : (value) {
-                                setState(() {
-                                  refundPolicyAccepted = value ?? false;
-                                });
-                              },
-                      ),
-                      Expanded(
-                        child: TextButton(
-                          onPressed: paymentProcessing
-                              ? null
-                              : () => LegalLinks.open(
-                                    context,
-                                    LegalLinks.caymaHakki,
+        bottomNavigationBar: _financialEvaluationExpired
+            ? null
+            : SafeArea(
+                top: false,
+                child: Material(
+                  color: Colors.white,
+                  elevation: 14,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Checkbox(
+                              value: refundPolicyAccepted,
+                              onChanged: paymentProcessing
+                                  ? null
+                                  : (value) {
+                                      setState(() {
+                                        refundPolicyAccepted = value ?? false;
+                                      });
+                                    },
+                            ),
+                            Expanded(
+                              child: TextButton(
+                                onPressed: paymentProcessing
+                                    ? null
+                                    : () => LegalLinks.open(
+                                          context,
+                                          LegalLinks.caymaHakki,
+                                        ),
+                                style: TextButton.styleFrom(
+                                  alignment: Alignment.centerLeft,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 6,
                                   ),
-                          style: TextButton.styleFrom(
-                            alignment: Alignment.centerLeft,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 6,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'İptal / İade Politikası’nı okudum ve kabul ediyorum.',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    height: 1.3,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
                             ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text(
-                            'İptal / İade Politikası’nı okudum ve kabul ediyorum.',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              height: 1.3,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        PrimaryButton(
+                          text:
+                              '${_formatPaymentAmount(amount)} $currency Öde ve Tam Raporu Gör',
+                          loading: paymentProcessing,
+                          onPressed: paymentProcessing || !refundPolicyAccepted
+                              ? null
+                              : _startPaymentAfterRefundPolicyCheck,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 6),
-                  PrimaryButton(
-                    text:
-                        '${_formatPaymentAmount(amount)} $currency Öde ve Tam Raporu Gör',
-                    loading: paymentProcessing,
-                    onPressed: paymentProcessing || !refundPolicyAccepted
-                        ? null
-                        : _startPaymentAfterRefundPolicyCheck,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sonuç')),
+      appBar: AppBar(
+        title: Text(
+          widget.openedFromHistory ? 'Rapor Detayı' : 'Sonuç',
+        ),
+      ),
       body: SafeArea(
         minimum: const EdgeInsets.all(14),
         child: ListView(children: [
@@ -1814,6 +2030,8 @@ class _ResultScreenState extends State<ResultScreen> {
             _applicantIdentityCard(),
             const SizedBox(height: 28),
             _quickSummaryCards(),
+            const SizedBox(height: 20),
+            _lifecycleNotice(),
             const SizedBox(height: 28),
             _positiveReasons(),
             const SizedBox(height: 32),
@@ -1830,11 +2048,36 @@ class _ResultScreenState extends State<ResultScreen> {
             _disclaimer(),
             const SizedBox(height: 20),
             PrimaryButton(
-                text: 'Paylaşım Linki Oluştur',
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ShareScreen()))),
+              text: _canCreateShare
+                  ? 'Paylaşım Linki Oluştur'
+                  : 'Paylaşım Erişim Süresi Sona Erdi',
+              onPressed: _canCreateShare
+                  ? () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ShareScreen(),
+                        ),
+                      )
+                  : null,
+            ),
+            if (!_canCreateShare) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Rapor görüntülenebilir; ancak 30 günlük paylaşım ve '
+                'doğrulama erişim süresi sona erdiği için yeni bağlantı '
+                'oluşturulamaz.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  height: 1.35,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
           ] else ...[
+            _lifecycleNotice(),
+            const SizedBox(height: 20),
             _negativeResult(),
             const SizedBox(height: 20),
           ],

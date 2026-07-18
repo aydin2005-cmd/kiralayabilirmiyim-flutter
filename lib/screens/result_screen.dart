@@ -774,6 +774,145 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  Widget _lockedHeroCard() {
+    final artIcon = _isCarRental
+        ? Icons.directions_car_filled_outlined
+        : Icons.house_outlined;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF073B4D),
+            Color(0xFF123C69),
+            Color(0xFF0B2545),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x24000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -8,
+            bottom: -18,
+            child: Icon(
+              artIcon,
+              size: 120,
+              color: const Color(0x1AFFFFFF),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 68,
+                    height: 68,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE9F8F3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.fact_check_outlined,
+                      color: _green,
+                      size: 38,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ÖN DEĞERLENDİRMENİZ',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            height: 1.1,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'OLUMLU',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            height: 1,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Başvurunuz, ayrıntılı Kiralayabilir Miyim raporu oluşturulmasına uygundur.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 15.5,
+                  height: 1.4,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE9F8F3),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  '✓ Tam rapor oluşturulabilir',
+                  style: TextStyle(
+                    color: Color(0xFF075E47),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(13),
+                decoration: BoxDecoration(
+                  color: const Color(0x1FFFFFFF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0x3DFFFFFF)),
+                ),
+                child: const Text(
+                  'Nihai değerlendirme, ayrıntılı rapor, PDF ve paylaşım bağlantısı ödeme sonrasında açılır.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    height: 1.4,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _lockedPositiveReport() {
     final amount =
         pricingInfo['service_fee_amount'] ?? AppState.instance.serviceFeeAmount;
@@ -782,69 +921,101 @@ class _ResultScreenState extends State<ResultScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _heroCard(locked: true),
-        _applicantIdentityCard(),
-        _quickSummaryCards(),
+        _lockedHeroCard(),
         const SizedBox(height: 16),
         _sectionCard(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Tam rapor ve paylaşım hizmet bedeli',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Tam raporunuzu açın',
                 style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w900, color: _navy)),
-            const SizedBox(height: 8),
-            Text('${_formatPaymentAmount(amount)} $currency',
+                  fontSize: 21,
+                  fontWeight: FontWeight.w900,
+                  color: _navy,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${_formatPaymentAmount(amount)} $currency',
                 style: const TextStyle(
-                    fontSize: 32, fontWeight: FontWeight.w900, color: _green)),
-            const SizedBox(height: 10),
-            const Text(
-              'Ödeme sonrasında tam rapor, PDF ve paylaşım linkleri erişime açılır.',
-              style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w900,
+                  color: _green,
+                ),
+              ),
+              const Text(
+                'Tek seferlik ödeme',
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.4,
-                  color: Color(0xFF075E47),
-                  fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FBFF),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: _border),
-              ),
-              child: CheckboxListTile(
-                value: refundPolicyAccepted,
-                onChanged: paymentProcessing
-                    ? null
-                    : (v) => setState(() => refundPolicyAccepted = v ?? false),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                controlAffinity: ListTileControlAffinity.leading,
-                title: const Text(
-                  'İptal / İade Politikası’nı okudum, onaylıyorum.',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                  color: Color(0xFF475569),
+                  fontWeight: FontWeight.w700,
                 ),
-                subtitle: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: _legalChip(
-                      label: 'İptal / İade Politikası',
-                      url: LegalLinks.caymaHakki,
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Ödeme sonrasında erişime açılacaklar:',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: _navy,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 13),
+              _lockedBenefitRow(
+                Icons.analytics_outlined,
+                'Ayrıntılı finansal değerlendirme',
+              ),
+              _lockedBenefitRow(
+                Icons.picture_as_pdf_outlined,
+                'Sonuç raporu ve PDF',
+              ),
+              _lockedBenefitRow(
+                Icons.share_outlined,
+                '30 gün geçerli doğrulanabilir paylaşım bağlantısı',
+              ),
+              _lockedBenefitRow(
+                Icons.verified_user_outlined,
+                'Ücretsiz rapor doğrulama erişimi',
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FBFF),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _border),
+                ),
+                child: CheckboxListTile(
+                  value: refundPolicyAccepted,
+                  onChanged: paymentProcessing
+                      ? null
+                      : (value) {
+                          setState(() {
+                            refundPolicyAccepted = value ?? false;
+                          });
+                        },
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: const Text(
+                    'İptal / İade Politikası’nı okudum, onaylıyorum.',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: _legalChip(
+                        label: 'İptal / İade Politikası',
+                        url: LegalLinks.caymaHakki,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ]),
-        ),
-        const SizedBox(height: 16),
-        PrimaryButton(
-          text:
-              '${_formatPaymentAmount(amount)} $currency Öde ve Tam Raporu Aç',
-          loading: paymentProcessing,
-          onPressed:
-              paymentProcessing ? null : _startPaymentAfterRefundPolicyCheck,
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         OutlinedButton.icon(
@@ -853,8 +1024,9 @@ class _ResultScreenState extends State<ResultScreen> {
           label: const Text('Ödeme Durumunu Kontrol Et'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(54),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
             side: const BorderSide(color: _teal, width: 1.4),
             foregroundColor: _teal,
             textStyle:
@@ -862,6 +1034,41 @@ class _ResultScreenState extends State<ResultScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _lockedBenefitRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE9F8F3),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: _green),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.3,
+                  color: Color(0xFF334155),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1534,6 +1741,10 @@ class _ResultScreenState extends State<ResultScreen> {
     }
 
     if (_isPositive && fullReportLocked && !paymentCompleted) {
+      final amount = pricingInfo['service_fee_amount'] ??
+          AppState.instance.serviceFeeAmount;
+      final currency = pricingInfo['service_fee_currency']?.toString() ?? 'TL';
+
       return Scaffold(
         appBar: AppBar(title: const Text('Sonuç')),
         body: Stack(
@@ -1547,18 +1758,41 @@ class _ResultScreenState extends State<ResultScreen> {
                   OutlinedButton(
                     onPressed: paymentProcessing
                         ? null
-                        : () => Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const PurposeScreen()),
-                            (_) => false),
+                        : () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PurposeScreen(),
+                              ),
+                              (_) => false,
+                            );
+                          },
                     child: const Text('Yeni Başvuru Başlat'),
                   ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
             if (paymentProcessing) _paymentProcessingOverlay(),
           ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Material(
+            color: Colors.white,
+            elevation: 14,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+              child: PrimaryButton(
+                text:
+                    '${_formatPaymentAmount(amount)} $currency Öde ve Tam Raporu Gör',
+                loading: paymentProcessing,
+                onPressed: paymentProcessing
+                    ? null
+                    : _startPaymentAfterRefundPolicyCheck,
+              ),
+            ),
+          ),
         ),
       );
     }

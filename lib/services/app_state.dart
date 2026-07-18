@@ -27,6 +27,6 @@ class AppState {
 
   String? applicationType;
   num? applicationAmount;
-  num serviceFeeAmount = 9;
+  num serviceFeeAmount = 10;
   String serviceFeeCurrency = 'TL';
 }

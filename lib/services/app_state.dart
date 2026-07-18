@@ -13,7 +13,37 @@ class AppState {
   String? analysisId;
   String? resultType;
   bool paymentCompleted = false;
+  String? paymentCompletedApplicationId;
   bool paymentSuccessHandled = false;
+
+  bool get isCurrentApplicationPaymentCompleted {
+    final currentApplicationId = applicationId;
+    return paymentCompleted &&
+        currentApplicationId != null &&
+        paymentCompletedApplicationId == currentApplicationId;
+  }
+
+  void markCurrentApplicationPaymentCompleted() {
+    final currentApplicationId = applicationId;
+    if (currentApplicationId == null || currentApplicationId.isEmpty) {
+      return;
+    }
+
+    paymentCompleted = true;
+    paymentCompletedApplicationId = currentApplicationId;
+  }
+
+  void resetApplicationFlow() {
+    applicationId = null;
+    reportId = null;
+    analysisId = null;
+    resultType = null;
+    applicationType = null;
+    applicationAmount = null;
+    paymentCompleted = false;
+    paymentCompletedApplicationId = null;
+    paymentSuccessHandled = false;
+  }
 
   void resetPaymentSuccessHandling() {
     paymentSuccessHandled = false;

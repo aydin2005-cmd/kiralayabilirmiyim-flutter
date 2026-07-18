@@ -106,8 +106,12 @@ class _ResultScreenState extends State<ResultScreen> {
               AppState.instance.serviceFeeCurrency;
       fullReportLocked = response['full_report_locked'] == true ||
           pricingInfo['full_report_locked_until_payment'] == true;
-      paymentCompleted = pricingInfo['payment_completed'] == true ||
-          AppState.instance.paymentCompleted;
+      final backendPaymentCompleted = pricingInfo['payment_completed'] == true;
+      if (backendPaymentCompleted) {
+        AppState.instance.markCurrentApplicationPaymentCompleted();
+      }
+      paymentCompleted = backendPaymentCompleted ||
+          AppState.instance.isCurrentApplicationPaymentCompleted;
       AppState.instance.resultType = resultType;
     } catch (e) {
       errorMessage = e.toString();
@@ -979,41 +983,6 @@ class _ResultScreenState extends State<ResultScreen> {
                 Icons.verified_user_outlined,
                 'Ücretsiz rapor doğrulama erişimi',
               ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FBFF),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _border),
-                ),
-                child: CheckboxListTile(
-                  value: refundPolicyAccepted,
-                  onChanged: paymentProcessing
-                      ? null
-                      : (value) {
-                          setState(() {
-                            refundPolicyAccepted = value ?? false;
-                          });
-                        },
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: const Text(
-                    'İptal / İade Politikası’nı okudum, onaylıyorum.',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: _legalChip(
-                        label: 'İptal / İade Politikası',
-                        url: LegalLinks.caymaHakki,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -1081,18 +1050,6 @@ class _ResultScreenState extends State<ResultScreen> {
           border: Border.all(color: _border),
           borderRadius: BorderRadius.circular(20)),
       child: child,
-    );
-  }
-
-  Widget _legalChip({required String label, required String url}) {
-    return ActionChip(
-      avatar: const Icon(Icons.open_in_new_rounded, size: 16),
-      label: Text(label),
-      onPressed: () => LegalLinks.open(context, url),
-      labelStyle: const TextStyle(
-          fontSize: 12, fontWeight: FontWeight.w900, color: _teal),
-      side: const BorderSide(color: Color(0xFF99F6E4)),
-      backgroundColor: const Color(0xFFF0FDFA),
     );
   }
 
@@ -1752,6 +1709,7 @@ class _ResultScreenState extends State<ResultScreen> {
             SafeArea(
               minimum: const EdgeInsets.all(14),
               child: ListView(
+                padding: const EdgeInsets.only(bottom: 24),
                 children: [
                   _lockedPositiveReport(),
                   const SizedBox(height: 28),
@@ -1782,14 +1740,62 @@ class _ResultScreenState extends State<ResultScreen> {
             color: Colors.white,
             elevation: 14,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
-              child: PrimaryButton(
-                text:
-                    '${_formatPaymentAmount(amount)} $currency Öde ve Tam Raporu Gör',
-                loading: paymentProcessing,
-                onPressed: paymentProcessing
-                    ? null
-                    : _startPaymentAfterRefundPolicyCheck,
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: refundPolicyAccepted,
+                        onChanged: paymentProcessing
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  refundPolicyAccepted = value ?? false;
+                                });
+                              },
+                      ),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: paymentProcessing
+                              ? null
+                              : () => LegalLinks.open(
+                                    context,
+                                    LegalLinks.caymaHakki,
+                                  ),
+                          style: TextButton.styleFrom(
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 6,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'İptal / İade Politikası’nı okudum ve kabul ediyorum.',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              height: 1.3,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  PrimaryButton(
+                    text:
+                        '${_formatPaymentAmount(amount)} $currency Öde ve Tam Raporu Gör',
+                    loading: paymentProcessing,
+                    onPressed: paymentProcessing || !refundPolicyAccepted
+                        ? null
+                        : _startPaymentAfterRefundPolicyCheck,
+                  ),
+                ],
               ),
             ),
           ),

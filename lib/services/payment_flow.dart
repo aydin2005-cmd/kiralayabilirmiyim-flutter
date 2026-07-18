@@ -16,7 +16,7 @@ class PaymentFlow {
     }
     final statusResponse = await api.get('/payments/status/$appId');
     if (statusResponse['payment_completed'] == true) {
-      AppState.instance.paymentCompleted = true;
+      AppState.instance.markCurrentApplicationPaymentCompleted();
       return true;
     }
     final paymentStatus = statusResponse['status']?.toString().toLowerCase();
@@ -48,7 +48,7 @@ class PaymentFlow {
 
     final status = response['status']?.toString().toLowerCase();
     if (status == 'paid') {
-      AppState.instance.paymentCompleted = true;
+      AppState.instance.markCurrentApplicationPaymentCompleted();
       return true;
     }
 
@@ -76,7 +76,7 @@ class PaymentFlow {
       try {
         final statusResponse = await api.get('/payments/status/$appId');
         if (statusResponse['payment_completed'] == true) {
-          AppState.instance.paymentCompleted = true;
+          AppState.instance.markCurrentApplicationPaymentCompleted();
           return true;
         }
         final paymentStatus =

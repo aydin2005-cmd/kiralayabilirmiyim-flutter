@@ -19,6 +19,7 @@ class _PurposeScreenState extends State<PurposeScreen> {
   Future<void> select(ApplicationType type) async {
     setState(() => loading = true);
     try {
+      AppState.instance.resetApplicationFlow();
       AppState.instance.applicationType = type.apiValue;
       final response =
           await api.post('/applications', {'application_type': type.apiValue});

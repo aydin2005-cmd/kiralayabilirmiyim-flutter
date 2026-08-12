@@ -39,15 +39,16 @@ class _OtpScreenState extends State<OtpScreen> {
   void initState() {
     super.initState();
 
-    _smsSubscription =
-        SmsRetrieverService.instance.messages.listen(_handleRetrievedSms);
+    _smsSubscription = SmsRetrieverService.instance.messages.listen((message) {
+      unawaited(_handleRetrievedSms(message));
+    });
 
     final pendingMessage = SmsRetrieverService.instance.takePendingMessage();
 
     if (pendingMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _handleRetrievedSms(pendingMessage);
+          unawaited(_handleRetrievedSms(pendingMessage));
         }
       });
     }
@@ -61,7 +62,7 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
-  void _handleRetrievedSms(String message) {
+  Future<void> _handleRetrievedSms(String message) async {
     if (!mounted || loading) {
       return;
     }
@@ -84,7 +85,15 @@ class _OtpScreenState extends State<OtpScreen> {
       selection: TextSelection.collapsed(offset: code.length),
     );
 
-    unawaited(verify());
+    // Let the user briefly see that SMS Retriever filled the OTP
+    // before automatic verification moves to the next screen.
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+
+    if (!mounted || loading || codeController.text.trim() != code) {
+      return;
+    }
+
+    await verify();
   }
 
   Future<void> verify() async {

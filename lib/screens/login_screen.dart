@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_client.dart';
 import '../services/legal_links.dart';
+import '../services/sms_retriever_service.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/flow_widgets.dart';
 import 'otp_screen.dart';
@@ -40,9 +41,17 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() => loading = true);
+
+    var smsRetrieverStarted = false;
+
     try {
+      // Android'de OTP SMS'i istenmeden ÖNCE Retriever başlatılır.
+      // iOS/web veya Retriever başlatılamazsa manuel OTP akışı devam eder.
+      smsRetrieverStarted = await SmsRetrieverService.instance.start();
+
       final response = await api.post('/auth/otp/start',
           {'phone_number': phone, 'kvkk_notice_accepted': kvkkNoticeAccepted});
+
       final challengeId = response['challenge_id']?.toString();
       if (challengeId == null || challengeId.isEmpty)
         throw ApiException('Doğrulama kaydı oluşturulamadı.');
@@ -56,15 +65,22 @@ class _LoginScreenState extends State<LoginScreen> {
           : 6;
 
       if (!mounted) return;
+
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => OtpScreen(
-                    phoneNumber: phone,
-                    challengeId: challengeId,
-                    codeLength: codeLength,
-                  )));
+        context,
+        MaterialPageRoute(
+          builder: (_) => OtpScreen(
+            phoneNumber: phone,
+            challengeId: challengeId,
+            codeLength: codeLength,
+          ),
+        ),
+      );
     } catch (e) {
+      if (smsRetrieverStarted) {
+        await SmsRetrieverService.instance.stop();
+      }
+
       _showError(e.toString());
     } finally {
       if (mounted) setState(() => loading = false);

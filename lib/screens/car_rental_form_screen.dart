@@ -5,6 +5,7 @@ import '../services/api_client.dart';
 import '../services/app_state.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/flow_widgets.dart';
+import '../widgets/searchable_select_field.dart';
 import 'pdf_upload_screen.dart';
 
 class CarRentalFormScreen extends StatefulWidget {
@@ -26,11 +27,13 @@ class _CarRentalFormScreenState extends State<CarRentalFormScreen> {
     if (dailyController.text.isEmpty ||
         durationController.text.isEmpty ||
         selectedVehicleSegment == null ||
-        selectedCity == null)
+        selectedCity == null) {
       return _showError('Lütfen zorunlu alanları doldurun.');
+    }
     final id = AppState.instance.applicationId;
-    if (id == null)
+    if (id == null) {
       return _showError('Başvuru bulunamadı. Lütfen tekrar deneyin.');
+    }
     setState(() => loading = true);
     try {
       final dailyAmount = num.tryParse(dailyController.text) ?? 0;
@@ -94,16 +97,13 @@ class _CarRentalFormScreenState extends State<CarRentalFormScreen> {
               onChanged: (value) =>
                   setState(() => selectedVehicleSegment = value)),
           const SizedBox(height: 14),
-          DropdownButtonFormField<String>(
-              value: selectedCity,
-              isExpanded: true,
-              menuMaxHeight: 320,
-              decoration: const InputDecoration(labelText: 'İl'),
-              items: TurkeyLocations.cities
-                  .map((city) =>
-                      DropdownMenuItem(value: city, child: Text(city)))
-                  .toList(),
-              onChanged: (value) => setState(() => selectedCity = value)),
+          SearchableSelectField(
+            label: 'İl',
+            value: selectedCity,
+            items: TurkeyLocations.cities,
+            searchHint: 'İl ara',
+            onChanged: (value) => setState(() => selectedCity = value),
+          ),
           const SizedBox(height: 14),
           FlowTextField(
               controller: depositController,

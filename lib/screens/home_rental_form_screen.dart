@@ -4,6 +4,7 @@ import '../services/api_client.dart';
 import '../services/app_state.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/flow_widgets.dart';
+import '../widgets/searchable_select_field.dart';
 import 'pdf_upload_screen.dart';
 
 class HomeRentalFormScreen extends StatefulWidget {
@@ -24,11 +25,13 @@ class _HomeRentalFormScreenState extends State<HomeRentalFormScreen> {
   Future<void> submit() async {
     if (rentController.text.isEmpty ||
         selectedCity == null ||
-        selectedDistrict == null)
+        selectedDistrict == null) {
       return _showError('Lütfen zorunlu alanları doldurun.');
+    }
     final id = AppState.instance.applicationId;
-    if (id == null)
+    if (id == null) {
       return _showError('Başvuru bulunamadı. Lütfen tekrar deneyin.');
+    }
     setState(() => loading = true);
     try {
       final monthlyRent = num.tryParse(rentController.text) ?? 0;
@@ -74,45 +77,39 @@ class _HomeRentalFormScreenState extends State<HomeRentalFormScreen> {
               keyboardType: TextInputType.number,
               helper: 'Örnek: 35000'),
           const SizedBox(height: 14),
-          DropdownButtonFormField<String>(
-              value: selectedCity,
-              isExpanded: true,
-              menuMaxHeight: 320,
-              decoration: const InputDecoration(labelText: 'İl'),
-              items: TurkeyLocations.cities
-                  .map((city) =>
-                      DropdownMenuItem(value: city, child: Text(city)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCity = value;
-                  selectedDistrict = null;
-                });
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  final ctx = districtFieldKey.currentContext;
-                  if (ctx != null) {
-                    Scrollable.ensureVisible(ctx,
-                        duration: const Duration(milliseconds: 350),
-                        curve: Curves.easeOut,
-                        alignment: 0.25);
-                  }
-                });
-              }),
+          SearchableSelectField(
+            label: 'İl',
+            value: selectedCity,
+            items: TurkeyLocations.cities,
+            searchHint: 'İl ara',
+            onChanged: (value) {
+              setState(() {
+                selectedCity = value;
+                selectedDistrict = null;
+              });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                final ctx = districtFieldKey.currentContext;
+                if (ctx != null) {
+                  Scrollable.ensureVisible(ctx,
+                      duration: const Duration(milliseconds: 350),
+                      curve: Curves.easeOut,
+                      alignment: 0.25);
+                }
+              });
+            },
+          ),
           const SizedBox(height: 14),
           Container(
-              key: districtFieldKey,
-              child: DropdownButtonFormField<String>(
-                  value: selectedDistrict,
-                  isExpanded: true,
-                  menuMaxHeight: 320,
-                  decoration: const InputDecoration(labelText: 'İlçe'),
-                  items: districtItems
-                      .map((district) => DropdownMenuItem(
-                          value: district, child: Text(district)))
-                      .toList(),
-                  onChanged: selectedCity == null
-                      ? null
-                      : (value) => setState(() => selectedDistrict = value))),
+            key: districtFieldKey,
+            child: SearchableSelectField(
+              label: 'İlçe',
+              value: selectedDistrict,
+              items: districtItems,
+              enabled: selectedCity != null,
+              searchHint: 'İlçe ara',
+              onChanged: (value) => setState(() => selectedDistrict = value),
+            ),
+          ),
           const SizedBox(height: 14),
           FlowTextField(
               controller: depositController,

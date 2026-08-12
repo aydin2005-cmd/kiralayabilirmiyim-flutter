@@ -46,12 +46,24 @@ class _LoginScreenState extends State<LoginScreen> {
       final challengeId = response['challenge_id']?.toString();
       if (challengeId == null || challengeId.isEmpty)
         throw ApiException('Doğrulama kaydı oluşturulamadı.');
+
+      final responseCodeLength =
+          int.tryParse(response['code_length']?.toString() ?? '');
+      final codeLength = responseCodeLength != null &&
+              responseCodeLength >= 4 &&
+              responseCodeLength <= 10
+          ? responseCodeLength
+          : 6;
+
       if (!mounted) return;
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (_) =>
-                  OtpScreen(phoneNumber: phone, challengeId: challengeId)));
+              builder: (_) => OtpScreen(
+                    phoneNumber: phone,
+                    challengeId: challengeId,
+                    codeLength: codeLength,
+                  )));
     } catch (e) {
       _showError(e.toString());
     } finally {

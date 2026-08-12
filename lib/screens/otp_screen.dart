@@ -9,8 +9,14 @@ import 'identity_profile_screen.dart';
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
   final String challengeId;
-  const OtpScreen(
-      {super.key, required this.phoneNumber, required this.challengeId});
+  final int codeLength;
+
+  const OtpScreen({
+    super.key,
+    required this.phoneNumber,
+    required this.challengeId,
+    this.codeLength = 6,
+  });
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }
@@ -20,6 +26,9 @@ class _OtpScreenState extends State<OtpScreen> {
   bool loading = false;
   final api = ApiClient();
 
+  int get _codeLength =>
+      widget.codeLength >= 4 && widget.codeLength <= 10 ? widget.codeLength : 6;
+
   @override
   void dispose() {
     codeController.dispose();
@@ -28,8 +37,8 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Future<void> verify() async {
     final code = codeController.text.trim();
-    if (code.length != 6) {
-      return _showError('Lütfen 6 haneli SMS kodunu girin.');
+    if (code.length != _codeLength) {
+      return _showError('Lütfen $_codeLength haneli SMS kodunu girin.');
     }
     if (loading) return;
 
@@ -58,7 +67,7 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   void _handleCodeChanged(String value) {
-    if (value.length == 6 && !loading) verify();
+    if (value.length == _codeLength && !loading) verify();
   }
 
   void _showError(String text) =>
@@ -83,14 +92,14 @@ class _OtpScreenState extends State<OtpScreen> {
               autofocus: true,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.done,
-              maxLength: 6,
+              maxLength: _codeLength,
               autofillHints: const [AutofillHints.oneTimeCode],
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: _handleCodeChanged,
               onSubmitted: (_) => verify(),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'SMS kodu',
-                helperText: '6 haneli doğrulama kodu',
+                helperText: '$_codeLength haneli doğrulama kodu',
                 counterText: '',
               ),
             ),

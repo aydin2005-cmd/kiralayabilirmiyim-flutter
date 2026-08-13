@@ -41,3 +41,73 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
 
+  ios-staging-adhoc:
+    name: iOS Staging Ad Hoc
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    environment:
+      ios_signing:
+        provisioning_profiles:
+          - km-ios-staging-adhoc-profile
+        certificates:
+          - km-ios-staging-distribution-p12
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        BUNDLE_ID: "com.riskmetriks.kiralayabilirmiyim.ios.staging"
+
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+
+      - name: Configure staging iOS identity
+        script: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          project = Path("ios/Runner.xcodeproj/project.pbxproj")
+          text = project.read_text(encoding="utf-8")
+
+          old = "PRODUCT_BUNDLE_IDENTIFIER = com.riskmetriks.kiralayabilirmiyim.ios;"
+          new = "PRODUCT_BUNDLE_IDENTIFIER = com.riskmetriks.kiralayabilirmiyim.ios.staging;"
+
+          count = text.count(old)
+
+          if count != 3:
+              raise SystemExit(
+                  f"Expected 3 Runner bundle identifiers, found {count}"
+              )
+
+          project.write_text(
+              text.replace(old, new),
+              encoding="utf-8",
+          )
+
+          print(f"Updated {count} Runner bundle identifiers")
+          PY
+
+          /usr/libexec/PlistBuddy \
+            -c "Set :CFBundleDisplayName Kiralayabilir Miyim Staging" \
+            ios/Runner/Info.plist
+
+      - name: Set up Ad Hoc code signing
+        script: |
+          xcode-project use-profiles --verbose
+
+      - name: Build staging Ad Hoc IPA
+        script: |
+          IOS_BUILD_NUMBER=$(date +%s)
+          echo "Using iOS build number: $IOS_BUILD_NUMBER"
+
+          flutter build ipa \
+            --release \
+            --build-number="$IOS_BUILD_NUMBER" \
+            --dart-define=API_BASE_URL=https://staging-api.kiralayabilirmiyim.com \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log

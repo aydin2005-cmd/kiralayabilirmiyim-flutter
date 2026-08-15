@@ -6,6 +6,7 @@ import '../widgets/flow_widgets.dart';
 import 'home_rental_form_screen.dart';
 import 'car_rental_form_screen.dart';
 import 'history_screen.dart';
+import 'b2b_report_consent_screen.dart';
 
 class PurposeScreen extends StatefulWidget {
   const PurposeScreen({super.key});
@@ -29,12 +30,21 @@ class _PurposeScreenState extends State<PurposeScreen> {
         throw ApiException('Başvuru oluşturulamadı.');
       AppState.instance.applicationId = id;
       if (!mounted) return;
+
+      final Widget destination = AppState.instance.hasPendingB2BCorporateFlow
+          ? B2BReportConsentScreen(
+              applicationType: type,
+            )
+          : type == ApplicationType.homeRental
+              ? const HomeRentalFormScreen()
+              : const CarRentalFormScreen();
+
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (_) => type == ApplicationType.homeRental
-                  ? const HomeRentalFormScreen()
-                  : const CarRentalFormScreen()));
+        context,
+        MaterialPageRoute(
+          builder: (_) => destination,
+        ),
+      );
     } catch (e) {
       _showError(e.toString());
     } finally {

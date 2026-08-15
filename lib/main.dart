@@ -4,6 +4,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 
 import 'screens/analysis_screen.dart';
+import 'screens/b2b_referral_choice_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_client.dart';
 import 'services/app_state.dart';
@@ -38,7 +39,9 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
     try {
       final initial = await _appLinks.getInitialLink();
       if (initial != null) {
-        await _handleDeepLink(initial);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          unawaited(_handleDeepLink(initial));
+        });
       }
     } catch (_) {
       // Deep link support is best-effort; manual payment status check remains available.
@@ -49,9 +52,57 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
     );
   }
 
+  String? _b2bReferralToken(Uri uri) {
+    if (uri.scheme == 'kiralayabilirmiyim' && uri.host == 'b2b-referral') {
+      final token = uri.queryParameters['token']?.trim();
+
+      if (token != null && token.isNotEmpty) {
+        return token;
+      }
+
+      return null;
+    }
+
+    // HTTPS invitation format is parsed now so the
+    // Flutter code is ready for the later Universal/App
+    // Link domain configuration.
+    if ((uri.scheme == 'https' || uri.scheme == 'http') &&
+        uri.host.toLowerCase() == 'kiralayabilirmiyim.com') {
+      final segments = uri.pathSegments;
+
+      if (segments.length >= 2 && segments[0] == 'basvuru') {
+        final token = segments[1].trim();
+
+        if (token.isNotEmpty) {
+          return token;
+        }
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _handleDeepLink(Uri uri) async {
-    if (uri.scheme != 'kiralayabilirmiyim' || uri.host != 'payment-result')
+    final referralToken = _b2bReferralToken(uri);
+
+    if (referralToken != null) {
+      AppState.instance.clearB2BReferralContext();
+
+      _navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => B2BReferralChoiceScreen(
+            referralToken: referralToken,
+          ),
+        ),
+        (_) => false,
+      );
+
       return;
+    }
+
+    if (uri.scheme != 'kiralayabilirmiyim' || uri.host != 'payment-result') {
+      return;
+    }
     final appId = uri.queryParameters['application_id'];
     if (appId != null && appId.isNotEmpty) {
       AppState.instance.applicationId = appId;

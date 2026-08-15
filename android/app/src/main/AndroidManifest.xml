@@ -37,6 +37,12 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="kiralayabilirmiyim" android:host="payment-result" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="kiralayabilirmiyim" android:host="b2b-referral" />
+            </intent-filter>
         </activity>
         <meta-data
             android:name="flutterEmbedding"

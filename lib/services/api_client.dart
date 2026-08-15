@@ -131,6 +131,15 @@ class ApiClient {
       if (detail is String && detail.isNotEmpty) {
         throw ApiException(detail);
       }
+
+      if (detail is Map) {
+        final message = detail['message'];
+
+        if (message is String && message.isNotEmpty) {
+          throw ApiException(message);
+        }
+      }
+
       throw ApiException(
           'İşleminiz şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.');
     }

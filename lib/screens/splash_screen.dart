@@ -3,6 +3,7 @@ import '../widgets/primary_button.dart';
 import '../widgets/flow_widgets.dart';
 import '../services/legal_links.dart';
 import 'login_screen.dart';
+import 'b2b_entry_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -78,10 +79,33 @@ class SplashScreen extends StatelessWidget {
           ]),
         ),
       ],
-      bottom: PrimaryButton(
-        text: 'Başla',
-        onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+      bottom: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PrimaryButton(
+            text: 'Başla',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const LoginScreen(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const B2BEntryScreen(),
+                ),
+              ),
+              icon: const Icon(Icons.business_center_outlined),
+              label: const Text('Kurumsal Giriş'),
+            ),
+          ),
+        ],
       ),
     );
   }

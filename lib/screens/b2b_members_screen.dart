@@ -1,0 +1,280 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../services/b2b_api_client.dart';
+import '../services/b2b_helpers.dart';
+import '../widgets/flow_widgets.dart';
+
+class B2BMembersScreen extends StatefulWidget {
+  const B2BMembersScreen({super.key});
+
+  @override
+  State<B2BMembersScreen> createState() => _B2BMembersScreenState();
+}
+
+class _B2BMembersScreenState extends State<B2BMembersScreen> {
+  final B2BApiClient api = B2BApiClient();
+  final phoneController = TextEditingController();
+
+  String inviteRole = 'operator';
+  List<Map<String, dynamic>> members = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  void dispose() {
+    phoneController.dispose();
+    super.dispose();
+  }
+
+  void error(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
+
+  Future<void> load() async {
+    setState(() => loading = true);
+    try {
+      final rows = await api.getList('/b2b/members');
+      if (mounted) {
+        setState(() => members = rows);
+      }
+    } catch (e) {
+      error(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  Future<void> invite() async {
+    final phone = normalizeTurkeyMobile(phoneController.text);
+    if (phone == null) {
+      error('Geçerli bir Türkiye cep telefonu numarası giriniz.');
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      await api.post(
+        '/b2b/members/invite',
+        {
+          'phone_number': phone,
+          'role': inviteRole,
+        },
+      );
+
+      phoneController.clear();
+      await load();
+    } catch (e) {
+      error(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  Future<void> changeRole(String memberId, String role) async {
+    setState(() => loading = true);
+
+    try {
+      await api.patch(
+        '/b2b/members/${Uri.encodeComponent(memberId)}/role',
+        {'role': role},
+      );
+      await load();
+    } catch (e) {
+      error(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  Future<void> disable(String memberId) async {
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yetkili erişimini kapat'),
+        content: const Text(
+          'Bu kullanıcının kurumsal erişimi devre dışı bırakılacaktır.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Devre Dışı Bırak'),
+          ),
+        ],
+      ),
+    );
+
+    if (approved != true) {
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      await api.post(
+        '/b2b/members/${Uri.encodeComponent(memberId)}/disable',
+        {},
+      );
+      await load();
+    } catch (e) {
+      error(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  Widget memberCard(Map<String, dynamic> member) {
+    final memberId = member['member_id']?.toString() ?? '';
+    final role = member['role']?.toString() ?? '';
+    final status = member['status']?.toString() ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: PremiumCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              member['phone_e164']?.toString() ?? '-',
+              style: const TextStyle(
+                fontWeight: FontWeight.w900,
+                color: FlowColors.navyDark,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text('${b2bRoleLabel(role)} · ${b2bStatusLabel(status)}'),
+            if (member['last_login_at'] != null)
+              Text(
+                'Son giriş: ${shortDate(member['last_login_at'])}',
+                style: const TextStyle(color: FlowColors.muted),
+              ),
+            if (memberId.isNotEmpty && role != 'owner' && status != 'disabled')
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  PopupMenuButton<String>(
+                    onSelected: (value) => changeRole(memberId, value),
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(
+                        value: 'admin',
+                        child: Text('Yönetici yap'),
+                      ),
+                      PopupMenuItem(
+                        value: 'operator',
+                        child: Text('Operatör yap'),
+                      ),
+                      PopupMenuItem(
+                        value: 'viewer',
+                        child: Text('Görüntüleyici yap'),
+                      ),
+                    ],
+                    child: const Chip(
+                      avatar: Icon(Icons.manage_accounts_outlined, size: 18),
+                      label: Text('Rol Değiştir'),
+                    ),
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.block_outlined, size: 18),
+                    label: const Text('Erişimi Kapat'),
+                    onPressed: () => disable(memberId),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FlowScaffold(
+      title: 'Ekip Üyeleri',
+      children: [
+        const FlowHeader(
+          icon: Icons.group_outlined,
+          eyebrow: 'Yetkililer',
+          title: 'Kurumsal ekibinizi yönetin',
+          subtitle:
+              'Yeni kullanıcı davet edin, rollerini değiştirin veya erişimlerini kapatın.',
+        ),
+        const SizedBox(height: 18),
+        PremiumCard(
+          child: Column(
+            children: [
+              FlowTextField(
+                controller: phoneController,
+                label: 'Yeni yetkili cep telefonu',
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: inviteRole,
+                decoration: const InputDecoration(labelText: 'Rol'),
+                items: const [
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text('Yönetici'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'operator',
+                    child: Text('Operatör'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'viewer',
+                    child: Text('Görüntüleyici'),
+                  ),
+                ],
+                onChanged: loading
+                    ? null
+                    : (value) {
+                        if (value != null) {
+                          setState(() => inviteRole = value);
+                        }
+                      },
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: loading ? null : invite,
+                  icon: const Icon(Icons.person_add_alt_1_outlined),
+                  label: const Text('Yetkili Davet Et'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        if (loading && members.isEmpty)
+          const Center(child: CircularProgressIndicator())
+        else
+          ...members.map(memberCard),
+      ],
+    );
+  }
+}

@@ -9,6 +9,7 @@ import 'screens/splash_screen.dart';
 import 'services/api_client.dart';
 import 'services/app_state.dart';
 import 'services/payment_flow.dart';
+import 'services/referral_link_parser.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -53,33 +54,7 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
   }
 
   String? _b2bReferralToken(Uri uri) {
-    if (uri.scheme == 'kiralayabilirmiyim' && uri.host == 'b2b-referral') {
-      final token = uri.queryParameters['token']?.trim();
-
-      if (token != null && token.isNotEmpty) {
-        return token;
-      }
-
-      return null;
-    }
-
-    // HTTPS invitation format is parsed now so the
-    // Flutter code is ready for the later Universal/App
-    // Link domain configuration.
-    if ((uri.scheme == 'https' || uri.scheme == 'http') &&
-        uri.host.toLowerCase() == 'kiralayabilirmiyim.com') {
-      final segments = uri.pathSegments;
-
-      if (segments.length >= 2 && segments[0] == 'basvuru') {
-        final token = segments[1].trim();
-
-        if (token.isNotEmpty) {
-          return token;
-        }
-      }
-    }
-
-    return null;
+    return b2bReferralTokenFromUri(uri);
   }
 
   Future<void> _handleDeepLink(Uri uri) async {

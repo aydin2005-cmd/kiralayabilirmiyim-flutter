@@ -10,14 +10,19 @@ import '../widgets/primary_button.dart';
 import 'b2b_login_screen.dart';
 
 class B2BActivationScreen extends StatefulWidget {
-  const B2BActivationScreen({super.key});
+  final String? initialPhone;
+
+  const B2BActivationScreen({
+    super.key,
+    this.initialPhone,
+  });
 
   @override
   State<B2BActivationScreen> createState() => _B2BActivationScreenState();
 }
 
 class _B2BActivationScreenState extends State<B2BActivationScreen> {
-  final phoneController = TextEditingController();
+  late final TextEditingController phoneController;
   final codeController = TextEditingController();
   final passwordController = TextEditingController();
   final passwordAgainController = TextEditingController();
@@ -32,6 +37,9 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
   @override
   void initState() {
     super.initState();
+    phoneController = TextEditingController(
+      text: turkeyMobileFieldDigits(widget.initialPhone ?? ''),
+    );
     otpAutofill = OtpAutofillCoordinator(
       controller: codeController,
       codeLength: () => codeLength,
@@ -223,9 +231,12 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
               FlowTextField(
                 controller: phoneController,
                 label: 'Yetkili cep telefonu',
+                helper: 'Başında 0 olmadan 5XXXXXXXXX formatında giriniz.',
+                prefixText: '+90 ',
                 keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                maxLength: 10,
+                inputFormatters: const [
+                  TurkeyMobileFieldFormatter(),
                 ],
               ),
               if (started) ...[

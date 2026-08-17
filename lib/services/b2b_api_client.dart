@@ -12,6 +12,12 @@ class B2BApiClient {
   static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'b2b_access_token';
 
+  final http.Client _httpClient;
+
+  B2BApiClient({
+    http.Client? httpClient,
+  }) : _httpClient = httpClient ?? http.Client();
+
   Future<void> saveToken(String token) async {
     try {
       await _storage.write(key: _tokenKey, value: token);
@@ -38,14 +44,18 @@ class B2BApiClient {
     }
   }
 
-  Future<Map<String, String>> _headers() async {
+  Future<Map<String, String>> _headers({
+    bool includeAuth = true,
+  }) async {
     final headers = <String, String>{
       'Content-Type': 'application/json; charset=utf-8',
     };
 
-    final token = await getToken();
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
+    if (includeAuth) {
+      final token = await getToken();
+      if (token != null && token.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $token';
+      }
     }
 
     return headers;
@@ -55,7 +65,7 @@ class B2BApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
       body: jsonEncode(body),
@@ -63,11 +73,40 @@ class B2BApiClient {
     return _decodeMap(response);
   }
 
+  Future<Map<String, dynamic>> postPublic(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final response = await _httpClient.post(
+      Uri.parse('$baseUrl$path'),
+      headers: await _headers(includeAuth: false),
+      body: jsonEncode(body),
+    );
+    return _decodeMap(response);
+  }
+
+  Future<Map<String, dynamic>> registerSelfService({
+    required String legalName,
+    required String taxNumber,
+    required String billingAddress,
+    required String ownerPhone,
+  }) {
+    return postPublic(
+      '/b2b/onboarding/register',
+      {
+        'legal_name': legalName,
+        'tax_number': taxNumber,
+        'billing_address': billingAddress,
+        'owner_phone': ownerPhone,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> patch(
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await http.patch(
+    final response = await _httpClient.patch(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
       body: jsonEncode(body),
@@ -76,7 +115,7 @@ class B2BApiClient {
   }
 
   Future<Map<String, dynamic>> get(String path) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
     );
@@ -84,7 +123,7 @@ class B2BApiClient {
   }
 
   Future<List<Map<String, dynamic>>> getList(String path) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
     );
@@ -101,7 +140,7 @@ class B2BApiClient {
   }
 
   Future<Uint8List> getBytes(String path) async {
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
     );

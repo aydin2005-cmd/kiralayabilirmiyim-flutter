@@ -6,22 +6,29 @@ import '../widgets/primary_button.dart';
 import 'b2b_activation_screen.dart';
 import 'b2b_login_screen.dart';
 import 'b2b_portal_screen.dart';
+import 'b2b_registration_screen.dart';
 
 class B2BEntryScreen extends StatefulWidget {
-  const B2BEntryScreen({super.key});
+  final B2BApiClient? apiClient;
+
+  const B2BEntryScreen({
+    super.key,
+    this.apiClient,
+  });
 
   @override
   State<B2BEntryScreen> createState() => _B2BEntryScreenState();
 }
 
 class _B2BEntryScreenState extends State<B2BEntryScreen> {
-  final B2BApiClient api = B2BApiClient();
+  late final B2BApiClient api;
   bool checking = true;
   bool sessionAvailable = false;
 
   @override
   void initState() {
     super.initState();
+    api = widget.apiClient ?? B2BApiClient();
     _checkSession();
   }
 
@@ -83,6 +90,34 @@ class _B2BEntryScreenState extends State<B2BEntryScreen> {
             ),
             const SizedBox(height: 14),
           ],
+          PremiumCard(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const B2BRegistrationScreen(),
+              ),
+            ),
+            child: const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.add_business_outlined,
+                color: FlowColors.green,
+                size: 34,
+              ),
+              title: Text(
+                'Kurumsal Hesap Oluştur',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: FlowColors.navyDark,
+                ),
+              ),
+              subtitle: Text(
+                'Firmanız için self servis kayıt başlatın.',
+              ),
+              trailing: Icon(Icons.chevron_right_rounded),
+            ),
+          ),
+          const SizedBox(height: 14),
           PremiumCard(
             onTap: () => Navigator.push(
               context,

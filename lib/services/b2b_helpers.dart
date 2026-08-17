@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 String? normalizeTurkeyMobile(String raw) {
   var digits = raw.replaceAll(RegExp(r'\D'), '');
 
@@ -14,6 +16,44 @@ String? normalizeTurkeyMobile(String raw) {
   }
 
   return '+90$digits';
+}
+
+String turkeyMobileFieldDigits(String raw) {
+  var digits = raw.replaceAll(RegExp(r'\D'), '');
+
+  if (digits.startsWith('90') && digits.length >= 12) {
+    digits = digits.substring(2);
+  }
+
+  if (digits.startsWith('0') && digits.length >= 11) {
+    digits = digits.substring(1);
+  }
+
+  if (digits.isNotEmpty && !digits.startsWith('5')) {
+    return '';
+  }
+
+  if (digits.length > 10) {
+    digits = digits.substring(0, 10);
+  }
+
+  return digits;
+}
+
+class TurkeyMobileFieldFormatter extends TextInputFormatter {
+  const TurkeyMobileFieldFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = turkeyMobileFieldDigits(newValue.text);
+    return TextEditingValue(
+      text: digits,
+      selection: TextSelection.collapsed(offset: digits.length),
+    );
+  }
 }
 
 String b2bRoleLabel(String? role) {

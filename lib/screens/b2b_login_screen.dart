@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../services/b2b_api_client.dart';
 import '../services/b2b_helpers.dart';
+import '../services/otp_autofill_coordinator.dart';
+import '../services/sms_retriever_service.dart';
 import '../widgets/flow_widgets.dart';
 import '../widgets/primary_button.dart';
 import 'b2b_portal_screen.dart';
@@ -24,6 +26,7 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   final passwordController = TextEditingController();
   final codeController = TextEditingController();
   final B2BApiClient api = B2BApiClient();
+  late final OtpAutofillCoordinator otpAutofill;
 
   String? challengeId;
   int codeLength = 6;
@@ -33,10 +36,21 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   void initState() {
     super.initState();
     phoneController = TextEditingController(text: widget.initialPhone ?? '');
+    otpAutofill = OtpAutofillCoordinator(
+      controller: codeController,
+      codeLength: () => codeLength,
+      isActive: () => mounted && !loading && challengeId != null,
+      canAutoSubmit: () => mounted && !loading && challengeId != null,
+      submit: verifyLogin,
+      messages: SmsRetrieverService.instance.messages,
+      takePendingMessage: SmsRetrieverService.instance.takePendingMessage,
+      stopRetriever: SmsRetrieverService.instance.stop,
+    );
   }
 
   @override
   void dispose() {
+    otpAutofill.dispose();
     phoneController.dispose();
     passwordController.dispose();
     codeController.dispose();
@@ -65,7 +79,11 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
 
     setState(() => loading = true);
 
+    var smsRetrieverStarted = false;
+
     try {
+      smsRetrieverStarted = await SmsRetrieverService.instance.start();
+
       final response = await api.post(
         '/b2b/auth/login/start',
         {
@@ -79,6 +97,13 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
         throw const B2BApiException('Kurumsal giriş başlatılamadı.');
       }
 
+      if (!mounted) {
+        if (smsRetrieverStarted) {
+          await SmsRetrieverService.instance.stop();
+        }
+        return;
+      }
+
       setState(() {
         challengeId = id;
         final parsedCodeLength = int.tryParse('${response['code_length']}');
@@ -87,10 +112,18 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
                 parsedCodeLength <= 10
             ? parsedCodeLength
             : 6;
+        codeController.clear();
+        loading = false;
       });
+
+      otpAutofill.start();
     } catch (e) {
+      if (smsRetrieverStarted) {
+        await SmsRetrieverService.instance.stop();
+      }
+
       _error(e.toString());
-    } finally {
+
       if (mounted) {
         setState(() => loading = false);
       }
@@ -111,6 +144,10 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
       return;
     }
 
+    if (loading) {
+      return;
+    }
+
     setState(() => loading = true);
 
     try {
@@ -128,6 +165,8 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
       }
 
       await api.saveToken(token);
+      await SmsRetrieverService.instance.stop();
+      TextInput.finishAutofillContext(shouldSave: false);
 
       if (!mounted) {
         return;
@@ -191,11 +230,16 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
                 FlowTextField(
                   controller: codeController,
                   label: 'SMS doğrulama kodu',
+                  autofocus: true,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                   maxLength: codeLength,
+                  autofillHints: const [AutofillHints.oneTimeCode],
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
+                  onChanged: otpAutofill.handleCodeChanged,
+                  onSubmitted: (_) => verifyLogin(),
                 ),
               ],
             ],

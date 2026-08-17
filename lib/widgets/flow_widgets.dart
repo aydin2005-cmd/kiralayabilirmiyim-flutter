@@ -258,10 +258,15 @@ class FlowTextField extends StatelessWidget {
   final String label;
   final String? helper;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
   final int? maxLength;
   final bool obscureText;
+  final bool autofocus;
   final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
+  final Iterable<String>? autofillHints;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final String? prefixText;
   const FlowTextField(
       {super.key,
@@ -269,21 +274,31 @@ class FlowTextField extends StatelessWidget {
       required this.label,
       this.helper,
       this.keyboardType,
+      this.textInputAction,
       this.maxLength,
       this.obscureText = false,
+      this.autofocus = false,
       this.textCapitalization = TextCapitalization.none,
       this.inputFormatters,
+      this.autofillHints,
+      this.onChanged,
+      this.onSubmitted,
       this.prefixText});
   @override
   Widget build(BuildContext context) {
     final keyboardBottom = MediaQuery.of(context).viewInsets.bottom;
     return TextField(
       controller: controller,
+      autofocus: autofocus,
       keyboardType: keyboardType,
+      textInputAction: textInputAction,
       maxLength: maxLength,
       obscureText: obscureText,
       textCapitalization: textCapitalization,
       inputFormatters: inputFormatters,
+      autofillHints: autofillHints,
+      onChanged: onChanged,
+      onSubmitted: onSubmitted,
       // Klavye + sabit CTA butonu kadar alan bırakır; böylece alan odaklanınca
       // otomatik kaydırma tüm form ekranlarında daha güvenilir çalışır.
       scrollPadding: EdgeInsets.only(bottom: keyboardBottom + 150),

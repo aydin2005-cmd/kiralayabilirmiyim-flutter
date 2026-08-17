@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 
 import '../services/b2b_api_client.dart';
 import '../services/b2b_helpers.dart';
+import '../services/otp_autofill_coordinator.dart';
+import '../services/sms_retriever_service.dart';
 import '../widgets/flow_widgets.dart';
 import '../widgets/primary_button.dart';
 import 'b2b_login_screen.dart';
@@ -20,6 +22,7 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
   final passwordController = TextEditingController();
   final passwordAgainController = TextEditingController();
   final B2BApiClient api = B2BApiClient();
+  late final OtpAutofillCoordinator otpAutofill;
 
   String? challengeId;
   String? normalizedPhone;
@@ -27,7 +30,29 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
   bool loading = false;
 
   @override
+  void initState() {
+    super.initState();
+    otpAutofill = OtpAutofillCoordinator(
+      controller: codeController,
+      codeLength: () => codeLength,
+      isActive: () => mounted && !loading && challengeId != null,
+      canAutoSubmit: () {
+        return mounted &&
+            !loading &&
+            challengeId != null &&
+            passwordController.text.length >= 10 &&
+            passwordController.text == passwordAgainController.text;
+      },
+      submit: verifyActivation,
+      messages: SmsRetrieverService.instance.messages,
+      takePendingMessage: SmsRetrieverService.instance.takePendingMessage,
+      stopRetriever: SmsRetrieverService.instance.stop,
+    );
+  }
+
+  @override
   void dispose() {
+    otpAutofill.dispose();
     phoneController.dispose();
     codeController.dispose();
     passwordController.dispose();
@@ -50,7 +75,11 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
 
     setState(() => loading = true);
 
+    var smsRetrieverStarted = false;
+
     try {
+      smsRetrieverStarted = await SmsRetrieverService.instance.start();
+
       final response = await api.post(
         '/b2b/auth/activate/start',
         {'phone_number': phone},
@@ -59,6 +88,13 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
       final id = response['challenge_id']?.toString();
       if (id == null || id.isEmpty) {
         throw const B2BApiException('Aktivasyon doğrulaması başlatılamadı.');
+      }
+
+      if (!mounted) {
+        if (smsRetrieverStarted) {
+          await SmsRetrieverService.instance.stop();
+        }
+        return;
       }
 
       setState(() {
@@ -70,10 +106,18 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
                 parsedCodeLength <= 10
             ? parsedCodeLength
             : 6;
+        codeController.clear();
+        loading = false;
       });
+
+      otpAutofill.start();
     } catch (e) {
+      if (smsRetrieverStarted) {
+        await SmsRetrieverService.instance.stop();
+      }
+
       _error(e.toString());
-    } finally {
+
       if (mounted) {
         setState(() => loading = false);
       }
@@ -107,6 +151,10 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
       return;
     }
 
+    if (loading) {
+      return;
+    }
+
     setState(() => loading = true);
 
     try {
@@ -118,6 +166,9 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
           'password': password,
         },
       );
+
+      await SmsRetrieverService.instance.stop();
+      TextInput.finishAutofillContext(shouldSave: false);
 
       if (!mounted) {
         return;
@@ -182,11 +233,16 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
                 FlowTextField(
                   controller: codeController,
                   label: 'SMS doğrulama kodu',
+                  autofocus: true,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                   maxLength: codeLength,
+                  autofillHints: const [AutofillHints.oneTimeCode],
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
+                  onChanged: otpAutofill.handleCodeChanged,
+                  onSubmitted: (_) => verifyActivation(),
                 ),
                 const SizedBox(height: 14),
                 FlowTextField(

@@ -81,12 +81,22 @@ String b2bStatusLabel(String? status) {
       return 'Devre Dışı';
     case 'awaiting_activation':
       return 'Aktivasyon Bekliyor';
+    case 'pending_payment':
+      return 'Ödeme Bekliyor';
     case 'paid':
       return 'Ödendi';
     case 'pending':
       return 'Bekliyor';
     case 'failed':
       return 'Başarısız';
+    case 'cancelled':
+      return 'İptal Edildi';
+    case 'refunded':
+      return 'İade Edildi';
+    case 'exhausted':
+      return 'Tükendi';
+    case 'expired':
+      return 'Süresi Doldu';
     default:
       return status ?? '-';
   }

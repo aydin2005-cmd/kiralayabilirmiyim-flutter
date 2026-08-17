@@ -5,35 +5,77 @@ import '../services/b2b_api_client.dart';
 import '../services/b2b_helpers.dart';
 import '../widgets/flow_widgets.dart';
 
+typedef B2BCheckoutLauncher = Future<bool> Function(Uri uri);
+
 class B2BPackagesScreen extends StatefulWidget {
   final bool canPurchase;
+  final B2BApiClient? apiClient;
+  final B2BCheckoutLauncher? checkoutLauncher;
+  final int autoRetryCount;
+  final Duration retryDelay;
 
   const B2BPackagesScreen({
     super.key,
     required this.canPurchase,
+    this.apiClient,
+    this.checkoutLauncher,
+    this.autoRetryCount = 4,
+    this.retryDelay = const Duration(seconds: 1),
   });
 
   @override
   State<B2BPackagesScreen> createState() => _B2BPackagesScreenState();
 }
 
-class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
-  final B2BApiClient api = B2BApiClient();
+class _B2BPackagesScreenState extends State<B2BPackagesScreen>
+    with WidgetsBindingObserver {
+  late final B2BApiClient api;
 
   List<Map<String, dynamic>> products = [];
   bool loading = true;
+  bool checkingPayment = false;
   String? lastPaymentId;
   Map<String, dynamic>? paymentStatus;
+  String? paymentMessage;
+  int _paymentCheckEpoch = 0;
 
   @override
   void initState() {
     super.initState();
+    api = widget.apiClient ?? B2BApiClient();
+    WidgetsBinding.instance.addObserver(this);
     loadProducts();
+  }
+
+  @override
+  void dispose() {
+    _paymentCheckEpoch++;
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && lastPaymentId != null) {
+      _checkPaymentStatus(auto: true);
+    }
   }
 
   void error(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(text)),
+    );
+  }
+
+  Future<bool> _openCheckout(Uri uri) {
+    final launcher = widget.checkoutLauncher;
+    if (launcher != null) {
+      return launcher(uri);
+    }
+
+    return launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
     );
   }
 
@@ -61,6 +103,10 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
       return;
     }
 
+    if (checkingPayment) {
+      return;
+    }
+
     setState(() => loading = true);
 
     try {
@@ -79,6 +125,8 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
       setState(() {
         lastPaymentId = paymentId;
         paymentStatus = response;
+        paymentMessage =
+            'Ödeme sonrası uygulamaya döndüğünüzde durum otomatik kontrol edilecek.';
       });
 
       if (checkoutUrl == null || checkoutUrl.isEmpty) {
@@ -86,10 +134,7 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
       }
 
       final uri = Uri.parse(checkoutUrl);
-      final opened = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
+      final opened = await _openCheckout(uri);
 
       if (!opened) {
         error('PayTR ödeme sayfası açılamadı.');
@@ -104,28 +149,122 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
   }
 
   Future<void> checkPayment() async {
+    await _checkPaymentStatus(auto: false);
+  }
+
+  Future<void> _checkPaymentStatus({required bool auto}) async {
     final paymentId = lastPaymentId;
-    if (paymentId == null) {
+    if (paymentId == null || checkingPayment) {
       return;
     }
 
-    setState(() => loading = true);
+    final epoch = ++_paymentCheckEpoch;
+    final attempts = auto ? widget.autoRetryCount + 1 : 1;
+
+    if (mounted) {
+      setState(() {
+        checkingPayment = true;
+        if (auto) {
+          paymentMessage = 'Ödemeniz doğrulanıyor...';
+        }
+      });
+    }
 
     try {
-      final status = await api.get(
-        '/b2b/packages/payments/${Uri.encodeComponent(paymentId)}',
-      );
+      for (var attempt = 0; attempt < attempts; attempt++) {
+        final status = await api.get(
+          '/b2b/packages/payments/${Uri.encodeComponent(paymentId)}',
+        );
 
-      if (mounted) {
-        setState(() => paymentStatus = status);
+        if (!mounted || epoch != _paymentCheckEpoch) {
+          return;
+        }
+
+        final finalAttempt = attempt == attempts - 1;
+        final assessment = _paymentAssessment(
+          status,
+          finalAttempt: finalAttempt,
+        );
+
+        setState(() {
+          paymentStatus = status;
+          paymentMessage = assessment.message;
+        });
+
+        if (!assessment.shouldRetry || finalAttempt) {
+          break;
+        }
+
+        await Future.delayed(widget.retryDelay);
+
+        if (!mounted || epoch != _paymentCheckEpoch) {
+          return;
+        }
       }
     } catch (e) {
-      error(e.toString());
-    } finally {
       if (mounted) {
-        setState(() => loading = false);
+        error('Ödeme durumu kontrol edilemedi. Lütfen tekrar deneyin.');
+      }
+    } finally {
+      if (mounted && epoch == _paymentCheckEpoch) {
+        setState(() => checkingPayment = false);
       }
     }
+  }
+
+  _PaymentAssessment _paymentAssessment(
+    Map<String, dynamic> status, {
+    required bool finalAttempt,
+  }) {
+    final payment = status['payment_status']?.toString();
+    final purchase = status['purchase_status']?.toString();
+
+    if (payment == 'failed') {
+      return const _PaymentAssessment('Ödeme tamamlanamadı.');
+    }
+
+    if (payment == 'cancelled' || purchase == 'cancelled') {
+      return const _PaymentAssessment('Ödeme işlemi iptal edildi.');
+    }
+
+    if (payment == 'refunded' || purchase == 'refunded') {
+      return const _PaymentAssessment('Ödeme iade edildi.');
+    }
+
+    if (payment == 'paid' && purchase == 'active') {
+      return const _PaymentAssessment(
+        'Ödemeniz alındı. Paketiniz hesabınıza tanımlandı.',
+      );
+    }
+
+    if (payment == 'paid' && purchase == 'awaiting_activation') {
+      return _PaymentAssessment(
+        finalAttempt
+            ? 'Ödemeniz alındı. Paketinizin hesabınıza tanımlanması tamamlanıyor. Biraz sonra tekrar kontrol edebilirsiniz.'
+            : 'Ödemeniz alındı. Paketiniz hesabınıza tanımlanıyor...',
+        shouldRetry: !finalAttempt,
+      );
+    }
+
+    if (payment == 'pending' || purchase == 'pending_payment') {
+      return _PaymentAssessment(
+        finalAttempt
+            ? 'Ödemeniz henüz doğrulanmadı. Biraz sonra tekrar kontrol edebilirsiniz.'
+            : 'Ödemeniz doğrulanıyor...',
+        shouldRetry: !finalAttempt,
+      );
+    }
+
+    if (payment == 'paid' &&
+        (purchase == 'exhausted' || purchase == 'expired')) {
+      return const _PaymentAssessment(
+        'Ödemeniz alındı. Paket durumunuzu portal bakiyenizden kontrol edebilirsiniz.',
+      );
+    }
+
+    return const _PaymentAssessment(
+      'Ödeme durumunuz kontrol edildi. Biraz sonra tekrar deneyebilirsiniz.',
+    );
   }
 
   Widget productCard(Map<String, dynamic> product) {
@@ -173,7 +312,8 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: loading ? null : () => buy(product),
+                  onPressed:
+                      loading || checkingPayment ? null : () => buy(product),
                   icon: const Icon(Icons.credit_card_rounded),
                   label: const Text('Paketi Satın Al'),
                 ),
@@ -218,19 +358,19 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
               Text('Fatura: ${status['invoice_status']}'),
             if (status['invoice_number'] != null)
               Text('Fatura No: ${status['invoice_number']}'),
+            if (paymentMessage != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                paymentMessage!,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: loading ? null : checkPayment,
+              onPressed: loading || checkingPayment ? null : checkPayment,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Ödeme Durumunu Kontrol Et'),
             ),
-            if (status['purchase_status'] == 'awaiting_activation') ...[
-              const SizedBox(height: 8),
-              const Text(
-                'Ödeme tamamlandı. Paket, RiskMetriks yönetici aktivasyonundan sonra bakiyenize eklenecektir.',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ],
           ],
         ),
       ),
@@ -263,4 +403,14 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen> {
       ],
     );
   }
+}
+
+class _PaymentAssessment {
+  final String message;
+  final bool shouldRetry;
+
+  const _PaymentAssessment(
+    this.message, {
+    this.shouldRetry = false,
+  });
 }

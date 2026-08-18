@@ -67,13 +67,25 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   }
 
   String _otpStartErrorMessage(Object error) {
+    return _rateLimitedErrorMessage(
+      error,
+      'Çok fazla SMS kodu istendi. Lütfen daha sonra tekrar deneyin.',
+    );
+  }
+
+  String _otpVerifyErrorMessage(Object error) {
+    return _rateLimitedErrorMessage(
+      error,
+      'Çok fazla doğrulama denemesi yapıldı. Lütfen daha sonra tekrar deneyin.',
+    );
+  }
+
+  String _rateLimitedErrorMessage(Object error, String fallback) {
     if (error is B2BApiException && error.statusCode == 429) {
       const generic =
           'Kurumsal işlem şu anda tamamlanamadı. Lütfen tekrar deneyin.';
       final raw = error.message.trim();
-      final message = raw.isEmpty || raw == generic
-          ? 'Çok fazla SMS kodu istendi. Lütfen daha sonra tekrar deneyin.'
-          : raw;
+      final message = raw.isEmpty || raw == generic ? fallback : raw;
       final hint = formatRetryAfterHint(error.retryAfterSeconds);
       return hint == null ? message : '$message\n$hint';
     }
@@ -202,7 +214,7 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
         (route) => false,
       );
     } catch (e) {
-      _error(e.toString());
+      _error(_otpVerifyErrorMessage(e));
     } finally {
       if (mounted) {
         setState(() => loading = false);

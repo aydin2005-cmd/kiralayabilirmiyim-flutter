@@ -213,6 +213,58 @@ void main() {
     ]);
   });
 
+  testWidgets('activation verify 429 shows retry hint and keeps challenge',
+      (tester) async {
+    final api = _FakeOtpApiClient(
+      startResponse: _challenge('activation-challenge'),
+      verifyError: const B2BApiException(
+        'Çok fazla doğrulama denemesi yapıldı. Lütfen daha sonra tekrar deneyin.',
+        statusCode: 429,
+        retryAfterSeconds: 75,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: B2BActivationScreen(apiClient: api),
+      ),
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Yetkili cep telefonu'),
+      '5551112233',
+    );
+    _pressButton(tester, 'Aktivasyon Kodu Gönder');
+    await _pumpAsyncUi(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'SMS doğrulama kodu'),
+      '123456',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Yeni kurumsal şifre'),
+      'SecretPass1',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Şifre tekrar'),
+      'SecretPass1',
+    );
+    _pressButton(tester, 'Aktivasyonu Tamamla');
+    await _pumpAsyncUi(tester);
+
+    expect(api.postPaths, [
+      '/b2b/auth/activate/start',
+      '/b2b/auth/activate/verify',
+    ]);
+    expect(find.byType(B2BActivationScreen), findsOneWidget);
+    expect(
+      find.textContaining('Çok fazla doğrulama denemesi yapıldı.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Yaklaşık 2 dakika'), findsOneWidget);
+    expect(
+        find.widgetWithText(TextField, 'SMS doğrulama kodu'), findsOneWidget);
+  });
+
   testWidgets('login OTP start 429 shows SMS message and keeps credentials',
       (tester) async {
     final api = _FakeOtpApiClient(
@@ -311,6 +363,54 @@ void main() {
     ]);
     expect(api.savedTokens, ['b2b-session']);
   });
+
+  testWidgets('login verify 429 shows retry hint and keeps challenge',
+      (tester) async {
+    final api = _FakeOtpApiClient(
+      startResponse: _challenge('login-challenge'),
+      verifyError: const B2BApiException(
+        'Çok fazla doğrulama denemesi yapıldı. Lütfen daha sonra tekrar deneyin.',
+        statusCode: 429,
+        retryAfterSeconds: 3600,
+      ),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: B2BLoginScreen(apiClient: api),
+      ),
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Yetkili cep telefonu'),
+      '5551112233',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Kurumsal şifre'),
+      'SecretPass1',
+    );
+    _pressButton(tester, 'Giriş Kodu Gönder');
+    await _pumpAsyncUi(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'SMS doğrulama kodu'),
+      '123456',
+    );
+    await _pumpAsyncUi(tester);
+
+    expect(api.postPaths, [
+      '/b2b/auth/login/start',
+      '/b2b/auth/login/verify',
+    ]);
+    expect(api.savedTokens, isEmpty);
+    expect(find.byType(B2BLoginScreen), findsOneWidget);
+    expect(
+      find.textContaining('Çok fazla doğrulama denemesi yapıldı.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Yaklaşık 1 saat'), findsOneWidget);
+    expect(
+        find.widgetWithText(TextField, 'SMS doğrulama kodu'), findsOneWidget);
+  });
 }
 
 Future<void> _pumpAsyncUi(WidgetTester tester) async {
@@ -361,6 +461,7 @@ Map<String, dynamic> _challenge(String id) {
 
 class _FakeOtpApiClient extends B2BApiClient {
   final Object? startError;
+  final Object? verifyError;
   final Completer<Map<String, dynamic>>? startCompleter;
   final Map<String, dynamic> startResponse;
   final Map<String, dynamic> verifyResponse;
@@ -370,6 +471,7 @@ class _FakeOtpApiClient extends B2BApiClient {
 
   _FakeOtpApiClient({
     this.startError,
+    this.verifyError,
     this.startCompleter,
     Map<String, dynamic>? startResponse,
     Map<String, dynamic>? verifyResponse,
@@ -393,6 +495,10 @@ class _FakeOtpApiClient extends B2BApiClient {
       }
 
       return startResponse;
+    }
+
+    if (verifyError != null) {
+      throw verifyError!;
     }
 
     return verifyResponse;

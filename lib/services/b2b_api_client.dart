@@ -8,6 +8,9 @@ import 'api_client.dart';
 
 class B2BApiClient {
   static const String baseUrl = ApiClient.baseUrl;
+  static const b2bPrivacyNoticeVersion =
+      'b2b-privacy-notice-acknowledgement-v1-2026-08-18';
+  static const b2bTermsVersion = 'b2b-terms-acceptance-v1-2026-08-18';
 
   static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'b2b_access_token';
@@ -90,6 +93,10 @@ class B2BApiClient {
     required String taxNumber,
     required String billingAddress,
     required String ownerPhone,
+    required bool privacyNoticeAcknowledged,
+    required String privacyNoticeVersion,
+    required bool termsAccepted,
+    required String termsVersion,
   }) {
     return postPublic(
       '/b2b/onboarding/register',
@@ -98,6 +105,10 @@ class B2BApiClient {
         'tax_number': taxNumber,
         'billing_address': billingAddress,
         'owner_phone': ownerPhone,
+        'privacy_notice_acknowledged': privacyNoticeAcknowledged,
+        'privacy_notice_version': privacyNoticeVersion,
+        'terms_accepted': termsAccepted,
+        'terms_version': termsVersion,
       },
     );
   }

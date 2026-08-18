@@ -181,13 +181,14 @@ class _B2BReportConsentScreenState extends State<B2BReportConsentScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(
-              color: const Color(0xFFE2E8F0),
-            ),
+        Material(
+          color: Colors.white,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(
+              color: Color(0xFFE2E8F0),
+            ),
           ),
           child: CheckboxListTile(
             value: accepted,

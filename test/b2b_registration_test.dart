@@ -39,6 +39,14 @@ void main() {
     expect(find.text('Vergi Numarası'), findsOneWidget);
     expect(find.text('Fatura Adresi'), findsOneWidget);
     expect(find.text('Yetkili Cep Telefonu'), findsOneWidget);
+    expect(
+      find.text('KVKK Aydınlatma Metni’ni okudum ve kabul ediyorum.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Kullanım Şartları’nı okudum ve kabul ediyorum.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('empty required fields block registration request',
@@ -108,6 +116,18 @@ void main() {
       'tax_number',
       'billing_address',
       'owner_phone',
+      'privacy_notice_acknowledged',
+      'privacy_notice_version',
+      'terms_accepted',
+      'terms_version',
+    ]);
+    expect(api.privacyNoticeAcknowledged, [true]);
+    expect(api.privacyNoticeVersions, [
+      B2BApiClient.b2bPrivacyNoticeVersion,
+    ]);
+    expect(api.termsAccepted, [true]);
+    expect(api.termsVersions, [
+      B2BApiClient.b2bTermsVersion,
     ]);
     expect(api.sentPayloadKeys.single, isNot(contains('created_by')));
     expect(api.sentPayloadKeys.single, isNot(contains('organization_id')));
@@ -155,6 +175,10 @@ void main() {
       taxNumber: '1234567890',
       billingAddress: 'Test Mahallesi No: 1',
       ownerPhone: '+905551112233',
+      privacyNoticeAcknowledged: true,
+      privacyNoticeVersion: B2BApiClient.b2bPrivacyNoticeVersion,
+      termsAccepted: true,
+      termsVersion: B2BApiClient.b2bTermsVersion,
     );
 
     expect(requests, hasLength(1));
@@ -165,7 +189,48 @@ void main() {
       'tax_number': '1234567890',
       'billing_address': 'Test Mahallesi No: 1',
       'owner_phone': '+905551112233',
+      'privacy_notice_acknowledged': true,
+      'privacy_notice_version': B2BApiClient.b2bPrivacyNoticeVersion,
+      'terms_accepted': true,
+      'terms_version': B2BApiClient.b2bTermsVersion,
     });
+  });
+
+  testWidgets('registration is blocked until privacy and terms are accepted',
+      (tester) async {
+    final api = _FakeRegistrationApiClient();
+
+    await tester.pumpWidget(_registrationApp(api));
+    await _enterRegistrationForm(tester, acceptLegal: false);
+    await tester.tap(_registrationButton());
+    await tester.pump();
+
+    expect(api.calls, 0);
+    expect(
+      find.text('KVKK Aydınlatma Metni’ni okuyup kabul etmeniz gerekir.'),
+      findsOneWidget,
+    );
+
+    await _tapLegalCheckbox(
+      tester,
+      'KVKK Aydınlatma Metni’ni okudum ve kabul ediyorum.',
+    );
+    await tester.pump();
+    await tester.tap(_registrationButton());
+    await tester.pump();
+
+    expect(api.calls, 0);
+
+    await _tapLegalCheckbox(
+      tester,
+      'Kullanım Şartları’nı okudum ve kabul ediyorum.',
+    );
+    await tester.pump();
+    await tester.tap(_registrationButton());
+    await tester.pumpAndSettle();
+
+    expect(api.calls, 1);
+    expect(find.byType(B2BActivationScreen), findsOneWidget);
   });
 
   testWidgets('duplicate submit triggers only one registration request',
@@ -330,6 +395,7 @@ Future<void> _enterRegistrationForm(
   String taxNumber = '1234567890',
   String billingAddress = 'Test Mahallesi No: 1',
   String ownerPhone = '5551112233',
+  bool acceptLegal = true,
 }) async {
   await tester.enterText(
     find.widgetWithText(TextField, 'Şirket / Ticari Unvan'),
@@ -347,6 +413,28 @@ Future<void> _enterRegistrationForm(
     find.widgetWithText(TextField, 'Yetkili Cep Telefonu'),
     ownerPhone,
   );
+
+  if (acceptLegal) {
+    await _tapLegalCheckbox(
+      tester,
+      'KVKK Aydınlatma Metni’ni okudum ve kabul ediyorum.',
+    );
+    await _tapLegalCheckbox(
+      tester,
+      'Kullanım Şartları’nı okudum ve kabul ediyorum.',
+    );
+  }
+}
+
+Future<void> _tapLegalCheckbox(
+  WidgetTester tester,
+  String text,
+) async {
+  final finder = find.text(text);
+  await tester.ensureVisible(finder);
+  await tester.pump();
+  await tester.tap(finder);
+  await tester.pump();
 }
 
 Map<String, dynamic> _successResponse() {
@@ -374,6 +462,10 @@ class _FakeRegistrationApiClient extends B2BApiClient {
   final taxNumbers = <String>[];
   final billingAddresses = <String>[];
   final ownerPhones = <String>[];
+  final privacyNoticeAcknowledged = <bool>[];
+  final privacyNoticeVersions = <String>[];
+  final termsAccepted = <bool>[];
+  final termsVersions = <String>[];
   final sentPayloadKeys = <List<String>>[];
 
   _FakeRegistrationApiClient({
@@ -388,17 +480,31 @@ class _FakeRegistrationApiClient extends B2BApiClient {
     required String taxNumber,
     required String billingAddress,
     required String ownerPhone,
+    required bool privacyNoticeAcknowledged,
+    required String privacyNoticeVersion,
+    required bool termsAccepted,
+    required String termsVersion,
   }) async {
     calls += 1;
     legalNames.add(legalName);
     taxNumbers.add(taxNumber);
     billingAddresses.add(billingAddress);
     ownerPhones.add(ownerPhone);
+    this.privacyNoticeAcknowledged.add(
+          privacyNoticeAcknowledged,
+        );
+    privacyNoticeVersions.add(privacyNoticeVersion);
+    this.termsAccepted.add(termsAccepted);
+    termsVersions.add(termsVersion);
     sentPayloadKeys.add([
       'legal_name',
       'tax_number',
       'billing_address',
       'owner_phone',
+      'privacy_notice_acknowledged',
+      'privacy_notice_version',
+      'terms_accepted',
+      'terms_version',
     ]);
 
     if (error != null) {

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../services/b2b_api_client.dart';
 import '../services/b2b_helpers.dart';
+import '../services/legal_links.dart';
 import '../widgets/flow_widgets.dart';
 import '../widgets/primary_button.dart';
 import 'b2b_activation_screen.dart';
@@ -27,6 +28,8 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
 
   late final B2BApiClient api;
   bool loading = false;
+  bool privacyNoticeAcknowledged = false;
+  bool termsAccepted = false;
 
   @override
   void initState() {
@@ -120,6 +123,20 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
       return;
     }
 
+    if (!privacyNoticeAcknowledged) {
+      _showMessage(
+        'KVKK Aydınlatma Metni’ni okuyup kabul etmeniz gerekir.',
+      );
+      return;
+    }
+
+    if (!termsAccepted) {
+      _showMessage(
+        'Kullanım Şartları’nı okuyup kabul etmeniz gerekir.',
+      );
+      return;
+    }
+
     setState(() => loading = true);
 
     try {
@@ -128,6 +145,10 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
         taxNumber: taxNumber,
         billingAddress: billingAddress,
         ownerPhone: ownerPhone,
+        privacyNoticeAcknowledged: privacyNoticeAcknowledged,
+        privacyNoticeVersion: B2BApiClient.b2bPrivacyNoticeVersion,
+        termsAccepted: termsAccepted,
+        termsVersion: B2BApiClient.b2bTermsVersion,
       );
 
       final success = response['success'] == true;
@@ -236,10 +257,99 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
                 ],
                 onSubmitted: (_) => submitRegistration(),
               ),
+              const SizedBox(height: 14),
+              _LegalAcceptanceTile(
+                value: privacyNoticeAcknowledged,
+                text: 'KVKK Aydınlatma Metni’ni okudum ve kabul ediyorum.',
+                linkText: 'KVKK Aydınlatma Metni’ni Aç',
+                linkUrl: LegalLinks.kvkk,
+                enabled: !loading,
+                onChanged: (value) {
+                  setState(
+                    () => privacyNoticeAcknowledged = value,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _LegalAcceptanceTile(
+                value: termsAccepted,
+                text: 'Kullanım Şartları’nı okudum ve kabul ediyorum.',
+                linkText: 'Kullanım Şartları’nı Aç',
+                linkUrl: LegalLinks.terms,
+                enabled: !loading,
+                onChanged: (value) {
+                  setState(
+                    () => termsAccepted = value,
+                  );
+                },
+              ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LegalAcceptanceTile extends StatelessWidget {
+  final bool value;
+  final String text;
+  final String linkText;
+  final String linkUrl;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  const _LegalAcceptanceTile({
+    required this.value,
+    required this.text,
+    required this.linkText,
+    required this.linkUrl,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: const BorderSide(
+          color: Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CheckboxListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            value: value,
+            onChanged:
+                enabled ? (checked) => onChanged(checked ?? false) : null,
+            title: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.25,
+                color: FlowColors.navyDark,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed:
+                  enabled ? () => LegalLinks.open(context, linkUrl) : null,
+              icon: const Icon(Icons.open_in_new_rounded, size: 15),
+              label: Text(linkText),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

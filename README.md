@@ -84,7 +84,7 @@ Orijinal Findeks PDF yükleme
 ↓
 Onaylar
 ↓
-Test/pilot sürecinde 9 TL ödeme; canlı lansmanda 149 TL ödeme
+Ödeme adımı
 ↓
 Analiz
 ↓
@@ -175,4 +175,4 @@ Kullanıcı değerlendirme akışına devam etmeden önce raporun garanti, kefal
 
 ## v2.1 Fiyatlandırma Politikası
 
-Ön değerlendirme ücretsizdir. Test/pilot sürecinde hizmet bedeli 9 TL olarak uygulanabilir; canlı lansmanda standart bedel 149 TL’dir. Hizmet bedeli olumlu kararın bedeli değildir; paylaşılabilir sonuç raporu oluşturma ve paylaşım hizmet bedelidir. Kriterler sağlanmazsa paylaşılabilir rapor oluşturulmaz ve ödeme alınmaz. Ödeme değerlendirme sonucunu değiştirmez.
+Ön değerlendirme ücretsizdir. Hizmet bedeli ödeme aşamasında kullanıcıya gösterilir. Hizmet bedeli olumlu kararın bedeli değildir; paylaşılabilir sonuç raporu oluşturma ve paylaşım hizmet bedelidir. Kriterler sağlanmazsa paylaşılabilir rapor oluşturulmaz ve ödeme alınmaz. Ödeme değerlendirme sonucunu değiştirmez.

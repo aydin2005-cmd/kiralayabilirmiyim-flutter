@@ -6,7 +6,7 @@
 - Ana başlık güncellendi: `EVET, KİRALAYABİLİRSİNİZ...`
 - Alt başlık güncellendi: `Findeks finansal göstergeleriniz, beyan edilen kira tutarı için olumlu görünmektedir.`
 - Ödeme öncesi olumlu sonuç ekranı sadeleştirildi: tam rapor, PDF ve paylaşım linkinin ödeme sonrası açılacağı netleştirildi.
-- 149 TL açıklaması ürün kuralına uygun hale getirildi: ücret olumlu kararın değil, paylaşılabilir sonuç raporu oluşturma ve paylaşım hizmetinin bedelidir.
+- Ücret açıklaması ürün kuralına uygun hale getirildi: ücret olumlu kararın değil, paylaşılabilir sonuç raporu oluşturma ve paylaşım hizmetinin bedelidir.
 - Olumlu sonuç ekranına yeni bölümler eklendi:
   - Hızlı özet kartları
   - Neden Olumlu Değerlendirildi?

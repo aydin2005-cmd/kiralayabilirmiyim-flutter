@@ -79,8 +79,7 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
       }
 
       switch (error.message) {
-        case 'Bu vergi numarası ile kayıtlı bir kurum bulunmaktadır.':
-        case 'Bu telefon numarası başka bir kurumsal kullanıcıda kayıtlıdır.':
+        case 'Bu bilgilerle mevcut bir kurumsal hesap olabilir. Giriş yapmayı deneyin veya destek ile iletişime geçin.':
         case 'Geçerli bir Türkiye cep telefonu numarası giriniz.':
         case 'Vergi numarası 10 veya 11 haneli olmalıdır.':
           return error.message;

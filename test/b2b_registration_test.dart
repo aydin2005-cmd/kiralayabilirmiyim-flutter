@@ -186,31 +186,11 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('duplicate tax error shows friendly Turkish message',
+  testWidgets('generalized duplicate conflict keeps form and blocks activation',
       (tester) async {
     final api = _FakeRegistrationApiClient(
       error: const B2BApiException(
-        'Bu vergi numarası ile kayıtlı bir kurum bulunmaktadır.',
-        statusCode: 409,
-      ),
-    );
-
-    await tester.pumpWidget(_registrationApp(api));
-    await _enterRegistrationForm(tester);
-    await tester.tap(_registrationButton());
-    await tester.pumpAndSettle();
-
-    expect(
-      find.text('Bu vergi numarası ile kayıtlı bir kurum bulunmaktadır.'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('duplicate phone error shows friendly Turkish message',
-      (tester) async {
-    final api = _FakeRegistrationApiClient(
-      error: const B2BApiException(
-        'Bu telefon numarası başka bir kurumsal kullanıcıda kayıtlıdır.',
+        'Bu bilgilerle mevcut bir kurumsal hesap olabilir. Giriş yapmayı deneyin veya destek ile iletişime geçin.',
         statusCode: 409,
       ),
     );
@@ -222,9 +202,17 @@ void main() {
 
     expect(
       find.text(
-          'Bu telefon numarası başka bir kurumsal kullanıcıda kayıtlıdır.'),
+        'Bu bilgilerle mevcut bir kurumsal hesap olabilir. Giriş yapmayı deneyin veya destek ile iletişime geçin.',
+      ),
       findsOneWidget,
     );
+    expect(find.byType(B2BActivationScreen), findsNothing);
+    expect(find.text('RiskMetriks AŞ'), findsOneWidget);
+    expect(find.text('1234567890'), findsOneWidget);
+    expect(find.text('Test Mahallesi No: 1'), findsOneWidget);
+    expect(find.text('5551112233'), findsOneWidget);
+    expect(find.textContaining('vergi numarası ile kayıtlı'), findsNothing);
+    expect(find.textContaining('telefon numarası başka'), findsNothing);
   });
 
   testWidgets('unexpected error shows safe fallback message', (tester) async {

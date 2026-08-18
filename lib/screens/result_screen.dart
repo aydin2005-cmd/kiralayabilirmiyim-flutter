@@ -841,6 +841,8 @@ class _ResultScreenState extends State<ResultScreen> {
         context: context,
         api: api,
         onStatus: (_) {},
+        refundPolicyAccepted: true,
+        refundPolicyVersion: PaymentFlow.refundPolicyVersion,
       );
 
       if (!ok) {

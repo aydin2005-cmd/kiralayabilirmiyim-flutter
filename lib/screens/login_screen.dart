@@ -49,8 +49,12 @@ class _LoginScreenState extends State<LoginScreen> {
       // iOS/web veya Retriever başlatılamazsa manuel OTP akışı devam eder.
       smsRetrieverStarted = await SmsRetrieverService.instance.start();
 
-      final response = await api.post('/auth/otp/start',
-          {'phone_number': phone, 'kvkk_notice_accepted': kvkkNoticeAccepted});
+      final response = await api.post('/auth/otp/start', {
+        'phone_number': phone,
+        'kvkk_notice_accepted': kvkkNoticeAccepted,
+        'kvkk_notice_version':
+            'b2c-privacy-notice-acknowledgement-v1-2026-08-18',
+      });
 
       final challengeId = response['challenge_id']?.toString();
       if (challengeId == null || challengeId.isEmpty)

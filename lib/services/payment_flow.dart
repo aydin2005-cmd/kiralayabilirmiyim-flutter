@@ -7,6 +7,8 @@ import 'api_client.dart';
 import 'app_state.dart';
 
 class PaymentFlow {
+  static const refundPolicyVersion = 'b2c-refund-policy-v1-2026-08-18';
+
   static Future<bool> checkCurrentStatus({
     required ApiClient api,
   }) async {
@@ -31,6 +33,8 @@ class PaymentFlow {
     required BuildContext context,
     required ApiClient api,
     required void Function(String message) onStatus,
+    bool refundPolicyAccepted = false,
+    String? refundPolicyVersion,
   }) async {
     final appId = AppState.instance.applicationId;
     if (appId == null) {
@@ -40,11 +44,19 @@ class PaymentFlow {
     AppState.instance.resetPaymentSuccessHandling();
 
     onStatus('Ödeme başlatılıyor...');
-    final response = await api.post('/payments/start', {
+    final request = <String, dynamic>{
       'application_id': appId,
       'amount': AppState.instance.serviceFeeAmount,
       'currency': 'TRY',
-    });
+    };
+
+    if (refundPolicyAccepted) {
+      request['refund_policy_accepted'] = true;
+      request['refund_policy_version'] =
+          refundPolicyVersion ?? PaymentFlow.refundPolicyVersion;
+    }
+
+    final response = await api.post('/payments/start', request);
 
     final status = response['status']?.toString().toLowerCase();
     if (status == 'paid') {

@@ -11,10 +11,12 @@ import 'b2b_portal_screen.dart';
 
 class B2BLoginScreen extends StatefulWidget {
   final String? initialPhone;
+  final B2BApiClient? apiClient;
 
   const B2BLoginScreen({
     super.key,
     this.initialPhone,
+    this.apiClient,
   });
 
   @override
@@ -25,7 +27,7 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   late final TextEditingController phoneController;
   final passwordController = TextEditingController();
   final codeController = TextEditingController();
-  final B2BApiClient api = B2BApiClient();
+  late final B2BApiClient api;
   late final OtpAutofillCoordinator otpAutofill;
 
   String? challengeId;
@@ -36,6 +38,7 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   void initState() {
     super.initState();
     phoneController = TextEditingController(text: widget.initialPhone ?? '');
+    api = widget.apiClient ?? B2BApiClient();
     otpAutofill = OtpAutofillCoordinator(
       controller: codeController,
       codeLength: () => codeLength,
@@ -63,7 +66,26 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
     );
   }
 
+  String _otpStartErrorMessage(Object error) {
+    if (error is B2BApiException && error.statusCode == 429) {
+      const generic =
+          'Kurumsal işlem şu anda tamamlanamadı. Lütfen tekrar deneyin.';
+      final raw = error.message.trim();
+      final message = raw.isEmpty || raw == generic
+          ? 'Çok fazla SMS kodu istendi. Lütfen daha sonra tekrar deneyin.'
+          : raw;
+      final hint = formatRetryAfterHint(error.retryAfterSeconds);
+      return hint == null ? message : '$message\n$hint';
+    }
+
+    return error.toString();
+  }
+
   Future<void> startLogin() async {
+    if (loading) {
+      return;
+    }
+
     final phone = normalizeTurkeyMobile(phoneController.text);
     final password = passwordController.text;
 
@@ -122,7 +144,7 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
         await SmsRetrieverService.instance.stop();
       }
 
-      _error(e.toString());
+      _error(_otpStartErrorMessage(e));
 
       if (mounted) {
         setState(() => loading = false);

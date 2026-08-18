@@ -57,8 +57,27 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
     return null;
   }
 
+  String _rateLimitMessage(
+    B2BApiException error,
+    String fallback,
+  ) {
+    const generic =
+        'Kurumsal işlem şu anda tamamlanamadı. Lütfen tekrar deneyin.';
+    final raw = error.message.trim();
+    final message = raw.isEmpty || raw == generic ? fallback : raw;
+    final hint = formatRetryAfterHint(error.retryAfterSeconds);
+    return hint == null ? message : '$message\n$hint';
+  }
+
   String _registrationErrorMessage(Object error) {
     if (error is B2BApiException) {
+      if (error.statusCode == 429) {
+        return _rateLimitMessage(
+          error,
+          'Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.',
+        );
+      }
+
       switch (error.message) {
         case 'Bu vergi numarası ile kayıtlı bir kurum bulunmaktadır.':
         case 'Bu telefon numarası başka bir kurumsal kullanıcıda kayıtlıdır.':

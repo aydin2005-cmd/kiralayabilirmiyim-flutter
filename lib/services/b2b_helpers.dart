@@ -110,6 +110,24 @@ String moneyText(dynamic amount, [String currency = 'TL']) {
   return '${value.toStringAsFixed(2)} $currency';
 }
 
+String? formatRetryAfterHint(int? seconds) {
+  if (seconds == null || seconds <= 0) {
+    return null;
+  }
+
+  if (seconds < 60) {
+    return 'Yaklaşık $seconds saniye sonra tekrar deneyebilirsiniz.';
+  }
+
+  if (seconds < 3600) {
+    final minutes = (seconds + 59) ~/ 60;
+    return 'Yaklaşık $minutes dakika sonra tekrar deneyebilirsiniz.';
+  }
+
+  final hours = (seconds + 3599) ~/ 3600;
+  return 'Yaklaşık $hours saat sonra tekrar deneyebilirsiniz.';
+}
+
 String shortDate(dynamic raw) {
   if (raw == null) {
     return '-';

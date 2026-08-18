@@ -244,6 +244,44 @@ void main() {
     expect(find.textContaining('sql_unique_constraint_internal'), findsNothing);
   });
 
+  testWidgets('429 keeps form values and shows retry hint', (tester) async {
+    final api = _FakeRegistrationApiClient(
+      error: const B2BApiException(
+        'Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.',
+        statusCode: 429,
+        retryAfterSeconds: 120,
+      ),
+    );
+
+    await tester.pumpWidget(_registrationApp(api));
+    await _enterRegistrationForm(tester);
+    await tester.tap(_registrationButton());
+    await tester.pumpAndSettle();
+
+    expect(api.calls, 1);
+    expect(find.byType(B2BActivationScreen), findsNothing);
+    expect(
+      find.textContaining(
+        'Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(
+        'Yaklaşık 2 dakika sonra tekrar deneyebilirsiniz.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(TextField, 'Şirket / Ticari Unvan'),
+      findsOneWidget,
+    );
+    expect(find.text('RiskMetriks AŞ'), findsOneWidget);
+    expect(find.text('1234567890'), findsOneWidget);
+    expect(find.text('Test Mahallesi No: 1'), findsOneWidget);
+    expect(find.text('5551112233'), findsOneWidget);
+  });
+
   testWidgets('malformed success phone does not navigate to activation',
       (tester) async {
     final api = _FakeRegistrationApiClient(

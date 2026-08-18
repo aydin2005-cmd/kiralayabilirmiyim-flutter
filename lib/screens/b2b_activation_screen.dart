@@ -11,10 +11,12 @@ import 'b2b_login_screen.dart';
 
 class B2BActivationScreen extends StatefulWidget {
   final String? initialPhone;
+  final B2BApiClient? apiClient;
 
   const B2BActivationScreen({
     super.key,
     this.initialPhone,
+    this.apiClient,
   });
 
   @override
@@ -26,7 +28,7 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
   final codeController = TextEditingController();
   final passwordController = TextEditingController();
   final passwordAgainController = TextEditingController();
-  final B2BApiClient api = B2BApiClient();
+  late final B2BApiClient api;
   late final OtpAutofillCoordinator otpAutofill;
 
   String? challengeId;
@@ -40,6 +42,7 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
     phoneController = TextEditingController(
       text: turkeyMobileFieldDigits(widget.initialPhone ?? ''),
     );
+    api = widget.apiClient ?? B2BApiClient();
     otpAutofill = OtpAutofillCoordinator(
       controller: codeController,
       codeLength: () => codeLength,
@@ -74,7 +77,26 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
     );
   }
 
+  String _otpStartErrorMessage(Object error) {
+    if (error is B2BApiException && error.statusCode == 429) {
+      const generic =
+          'Kurumsal işlem şu anda tamamlanamadı. Lütfen tekrar deneyin.';
+      final raw = error.message.trim();
+      final message = raw.isEmpty || raw == generic
+          ? 'Çok fazla SMS kodu istendi. Lütfen daha sonra tekrar deneyin.'
+          : raw;
+      final hint = formatRetryAfterHint(error.retryAfterSeconds);
+      return hint == null ? message : '$message\n$hint';
+    }
+
+    return error.toString();
+  }
+
   Future<void> startActivation() async {
+    if (loading) {
+      return;
+    }
+
     final phone = normalizeTurkeyMobile(phoneController.text);
     if (phone == null) {
       _error('Geçerli bir Türkiye cep telefonu numarası giriniz.');
@@ -124,7 +146,7 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
         await SmsRetrieverService.instance.stop();
       }
 
-      _error(e.toString());
+      _error(_otpStartErrorMessage(e));
 
       if (mounted) {
         setState(() => loading = false);

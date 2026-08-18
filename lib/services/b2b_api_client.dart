@@ -205,15 +205,42 @@ class B2BApiClient {
       // Keep the generic user-facing error.
     }
 
-    throw B2BApiException(message, statusCode: response.statusCode);
+    throw B2BApiException(
+      message,
+      statusCode: response.statusCode,
+      retryAfterSeconds: _retryAfterSeconds(response),
+    );
+  }
+
+  int? _retryAfterSeconds(http.Response response) {
+    String? value;
+
+    for (final entry in response.headers.entries) {
+      if (entry.key.toLowerCase() == 'retry-after') {
+        value = entry.value;
+        break;
+      }
+    }
+
+    final parsed = int.tryParse((value ?? '').trim());
+    if (parsed == null || parsed <= 0) {
+      return null;
+    }
+
+    return parsed;
   }
 }
 
 class B2BApiException implements Exception {
   final String message;
   final int? statusCode;
+  final int? retryAfterSeconds;
 
-  const B2BApiException(this.message, {this.statusCode});
+  const B2BApiException(
+    this.message, {
+    this.statusCode,
+    this.retryAfterSeconds,
+  });
 
   @override
   String toString() => message;

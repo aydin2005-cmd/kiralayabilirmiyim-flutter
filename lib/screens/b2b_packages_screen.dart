@@ -289,7 +289,7 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
             Text(product['description']?.toString() ?? ''),
             const SizedBox(height: 12),
             Text(
-              '$credits sorgu',
+              '$credits kredi',
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
@@ -385,7 +385,7 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
         const FlowHeader(
           icon: Icons.shopping_bag_outlined,
           eyebrow: 'Paketler',
-          title: 'Sorgu paketinizi seçin',
+          title: 'Kredi paketinizi seçin',
           subtitle:
               'Fiyatlar net, KDV ve toplam tutar ayrı gösterilir. Ödeme PayTR güvenli sayfasında tamamlanır.',
         ),

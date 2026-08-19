@@ -190,7 +190,7 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
                         color: FlowColors.navyDark,
                       ),
                     ),
-                    const Text('Kullanılabilir Sorgu'),
+                    const Text('Kullanılabilir Kredi'),
                   ],
                 ),
               ),

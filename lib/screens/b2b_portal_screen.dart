@@ -5,19 +5,25 @@ import '../services/b2b_helpers.dart';
 import '../widgets/flow_widgets.dart';
 import 'b2b_applications_screen.dart';
 import 'b2b_entry_screen.dart';
+import 'b2b_login_screen.dart';
 import 'b2b_members_screen.dart';
 import 'b2b_packages_screen.dart';
 import 'b2b_referrals_screen.dart';
 
 class B2BPortalScreen extends StatefulWidget {
-  const B2BPortalScreen({super.key});
+  final B2BApiClient? apiClient;
+
+  const B2BPortalScreen({
+    super.key,
+    this.apiClient,
+  });
 
   @override
   State<B2BPortalScreen> createState() => _B2BPortalScreenState();
 }
 
 class _B2BPortalScreenState extends State<B2BPortalScreen> {
-  final B2BApiClient api = B2BApiClient();
+  late final B2BApiClient api;
 
   Map<String, dynamic>? me;
   Map<String, dynamic>? credits;
@@ -30,6 +36,7 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
   @override
   void initState() {
     super.initState();
+    api = widget.apiClient ?? B2BApiClient();
     load();
   }
 
@@ -64,7 +71,7 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
     }
   }
 
-  Future<void> logout() async {
+  Future<void> _clearSession() async {
     try {
       await api.post('/b2b/auth/logout', {});
     } catch (_) {
@@ -72,6 +79,10 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
     }
 
     await api.clearToken();
+  }
+
+  Future<void> logout() async {
+    await _clearSession();
 
     if (!mounted) {
       return;
@@ -81,6 +92,40 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => const B2BEntryScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
+  Future<void> switchOrganization() async {
+    final phone =
+        me?['phone_e164']?.toString() ?? me?['phone_number']?.toString() ?? '';
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Yetkili telefon bilgisi alınamadı. '
+            'Lütfen oturumu kapatıp tekrar giriş yapın.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await _clearSession();
+
+    if (!mounted) {
+      return;
+    }
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => B2BLoginScreen(
+          initialPhone: turkeyMobileFieldDigits(phone),
+          apiClient: api,
+        ),
       ),
       (route) => false,
     );
@@ -235,7 +280,10 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
             icon: Icons.group_outlined,
             title: 'Ekip Üyeleri',
             subtitle: 'Yetkili davet edin, rolleri yönetin ve erişimi kapatın.',
-            destination: const B2BMembersScreen(),
+            destination: B2BMembersScreen(
+              currentMemberId: me?['member_id']?.toString(),
+              apiClient: api,
+            ),
           ),
         if (canManage)
           tile(
@@ -257,6 +305,13 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
           onPressed: load,
           icon: const Icon(Icons.refresh_rounded),
           label: const Text('Bakiyeyi Yenile'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton.icon(
+          key: const ValueKey('b2b-switch-organization'),
+          onPressed: switchOrganization,
+          icon: const Icon(Icons.swap_horiz_rounded),
+          label: const Text('Kurumu Değiştir'),
         ),
         const SizedBox(height: 8),
         TextButton.icon(

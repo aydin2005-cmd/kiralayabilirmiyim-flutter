@@ -33,6 +33,11 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   String? challengeId;
   int codeLength = 6;
   bool loading = false;
+  List<Map<String, dynamic>> organizationChoices = [];
+  int credentialRevision = 0;
+
+  bool get selectingOrganization =>
+      organizationChoices.isNotEmpty && challengeId == null;
 
   @override
   void initState() {
@@ -93,7 +98,54 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
     return error.toString();
   }
 
-  Future<void> startLogin() async {
+  List<Map<String, dynamic>> _organizationChoicesFrom(
+    Map<String, dynamic> response,
+  ) {
+    final rawOrganizations = response['organizations'];
+
+    if (rawOrganizations is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+
+    return rawOrganizations
+        .whereType<Map>()
+        .map(
+          (item) => Map<String, dynamic>.from(item),
+        )
+        .where(
+          (item) =>
+              (item['organization_id']?.toString() ?? '').isNotEmpty &&
+              (item['organization_name']?.toString() ?? '').isNotEmpty,
+        )
+        .toList(growable: false);
+  }
+
+  Future<void> _onCredentialChanged(String _) async {
+    credentialRevision += 1;
+
+    final hasCredentialBoundState = organizationChoices.isNotEmpty ||
+        challengeId != null ||
+        codeController.text.isNotEmpty;
+
+    if (!hasCredentialBoundState) {
+      return;
+    }
+
+    setState(() {
+      organizationChoices = const <Map<String, dynamic>>[];
+      challengeId = null;
+      codeLength = 6;
+      codeController.clear();
+    });
+
+    await SmsRetrieverService.instance.stop();
+  }
+
+  Future<void> startLogin() => _startLogin();
+
+  Future<void> _startLogin({
+    String? organizationId,
+  }) async {
     if (loading) {
       return;
     }
@@ -111,6 +163,8 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
       return;
     }
 
+    final requestCredentialRevision = credentialRevision;
+
     setState(() => loading = true);
 
     var smsRetrieverStarted = false;
@@ -118,13 +172,58 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
     try {
       smsRetrieverStarted = await SmsRetrieverService.instance.start();
 
+      final body = <String, dynamic>{
+        'phone_number': phone,
+        'password': password,
+      };
+
+      if (organizationId != null && organizationId.isNotEmpty) {
+        body['organization_id'] = organizationId;
+      }
+
       final response = await api.post(
         '/b2b/auth/login/start',
-        {
-          'phone_number': phone,
-          'password': password,
-        },
+        body,
       );
+
+      if (requestCredentialRevision != credentialRevision) {
+        if (smsRetrieverStarted) {
+          await SmsRetrieverService.instance.stop();
+        }
+
+        if (mounted) {
+          setState(() => loading = false);
+        }
+
+        return;
+      }
+
+      if (response['selection_required'] == true) {
+        final choices = _organizationChoicesFrom(response);
+
+        if (choices.isEmpty) {
+          throw const B2BApiException(
+            'Firma seçimi bilgisi alınamadı.',
+          );
+        }
+
+        if (smsRetrieverStarted) {
+          await SmsRetrieverService.instance.stop();
+          smsRetrieverStarted = false;
+        }
+
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          challengeId = null;
+          organizationChoices = choices;
+          loading = false;
+        });
+
+        return;
+      }
 
       final id = response['challenge_id']?.toString();
       if (id == null || id.isEmpty) {
@@ -139,6 +238,7 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
       }
 
       setState(() {
+        organizationChoices = const <Map<String, dynamic>>[];
         challengeId = id;
         final parsedCodeLength = int.tryParse('${response['code_length']}');
         codeLength = parsedCodeLength != null &&
@@ -225,13 +325,24 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   @override
   Widget build(BuildContext context) {
     final waitingOtp = challengeId != null;
+    final choosingOrganization = selectingOrganization;
 
     return FlowScaffold(
       title: 'Kurumsal Giriş',
       bottom: PrimaryButton(
-        text: waitingOtp ? 'SMS Kodunu Doğrula' : 'Giriş Kodu Gönder',
+        text: choosingOrganization
+            ? 'Firma Seçin'
+            : waitingOtp
+                ? 'SMS Kodunu Doğrula'
+                : 'Giriş Kodu Gönder',
         loading: loading,
-        onPressed: waitingOtp ? verifyLogin : startLogin,
+        onPressed: choosingOrganization
+            ? () => _error(
+                  'Devam etmek için bir firma seçiniz.',
+                )
+            : waitingOtp
+                ? verifyLogin
+                : startLogin,
       ),
       children: [
         const FlowHeader(
@@ -252,13 +363,76 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
                 ],
+                onChanged: _onCredentialChanged,
               ),
               const SizedBox(height: 14),
               FlowTextField(
                 controller: passwordController,
                 label: 'Kurumsal şifre',
                 obscureText: true,
+                onChanged: _onCredentialChanged,
               ),
+              if (choosingOrganization) ...[
+                const SizedBox(height: 14),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Firma Seçimi',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Birden fazla kurumsal kaydınız bulundu. '
+                    'Devam etmek istediğiniz firmayı seçin.',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...organizationChoices.map(
+                  (organization) {
+                    final organizationId =
+                        organization['organization_id']?.toString() ?? '';
+                    final organizationName =
+                        organization['organization_name']?.toString() ?? '-';
+                    final organizationRole =
+                        organization['role']?.toString() ?? '';
+
+                    return Material(
+                      type: MaterialType.transparency,
+                      child: ListTile(
+                        key: ValueKey(
+                          'b2b-login-org-$organizationId',
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.business_outlined,
+                        ),
+                        title: Text(
+                          organizationName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        subtitle: organizationRole.isEmpty
+                            ? null
+                            : Text('Rol: $organizationRole'),
+                        trailing: const Icon(
+                          Icons.chevron_right_rounded,
+                        ),
+                        onTap: loading || organizationId.isEmpty
+                            ? null
+                            : () => _startLogin(
+                                  organizationId: organizationId,
+                                ),
+                      ),
+                    );
+                  },
+                ),
+              ],
               if (waitingOtp) ...[
                 const SizedBox(height: 14),
                 FlowTextField(

@@ -6,14 +6,21 @@ import '../services/b2b_helpers.dart';
 import '../widgets/flow_widgets.dart';
 
 class B2BMembersScreen extends StatefulWidget {
-  const B2BMembersScreen({super.key});
+  final String? currentMemberId;
+  final B2BApiClient? apiClient;
+
+  const B2BMembersScreen({
+    super.key,
+    this.currentMemberId,
+    this.apiClient,
+  });
 
   @override
   State<B2BMembersScreen> createState() => _B2BMembersScreenState();
 }
 
 class _B2BMembersScreenState extends State<B2BMembersScreen> {
-  final B2BApiClient api = B2BApiClient();
+  late final B2BApiClient api;
   final phoneController = TextEditingController();
 
   String inviteRole = 'operator';
@@ -23,6 +30,7 @@ class _B2BMembersScreenState extends State<B2BMembersScreen> {
   @override
   void initState() {
     super.initState();
+    api = widget.apiClient ?? B2BApiClient();
     load();
   }
 
@@ -147,6 +155,7 @@ class _B2BMembersScreenState extends State<B2BMembersScreen> {
     final memberId = member['member_id']?.toString() ?? '';
     final role = member['role']?.toString() ?? '';
     final status = member['status']?.toString() ?? '';
+    final isSelf = memberId.isNotEmpty && memberId == widget.currentMemberId;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -162,14 +171,31 @@ class _B2BMembersScreenState extends State<B2BMembersScreen> {
               ),
             ),
             const SizedBox(height: 6),
-            Text('${b2bRoleLabel(role)} · ${b2bStatusLabel(status)}'),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${b2bRoleLabel(role)} · ${b2bStatusLabel(status)}',
+                  ),
+                ),
+                if (isSelf)
+                  const Chip(
+                    key: ValueKey('b2b-member-self-chip'),
+                    label: Text('Siz'),
+                  ),
+              ],
+            ),
             if (member['last_login_at'] != null)
               Text(
                 'Son giriş: ${shortDate(member['last_login_at'])}',
                 style: const TextStyle(color: FlowColors.muted),
               ),
-            if (memberId.isNotEmpty && role != 'owner' && status != 'disabled')
+            if (memberId.isNotEmpty &&
+                !isSelf &&
+                role != 'owner' &&
+                status != 'disabled')
               Wrap(
+                key: ValueKey('b2b-member-actions-$memberId'),
                 spacing: 8,
                 runSpacing: 8,
                 children: [

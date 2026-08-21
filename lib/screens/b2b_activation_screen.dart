@@ -35,6 +35,10 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
   String? normalizedPhone;
   int codeLength = 6;
   bool loading = false;
+  List<Map<String, dynamic>> organizationChoices = [];
+
+  bool get selectingOrganization =>
+      organizationChoices.isNotEmpty && challengeId != null;
 
   @override
   void initState() {
@@ -46,11 +50,13 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
     otpAutofill = OtpAutofillCoordinator(
       controller: codeController,
       codeLength: () => codeLength,
-      isActive: () => mounted && !loading && challengeId != null,
+      isActive: () =>
+          mounted && !loading && challengeId != null && !selectingOrganization,
       canAutoSubmit: () {
         return mounted &&
             !loading &&
             challengeId != null &&
+            !selectingOrganization &&
             passwordController.text.length >= 10 &&
             passwordController.text == passwordAgainController.text;
       },
@@ -102,6 +108,28 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
     }
 
     return error.toString();
+  }
+
+  List<Map<String, dynamic>> _organizationChoicesFrom(
+    Map<String, dynamic> response,
+  ) {
+    final rawOrganizations = response['organizations'];
+
+    if (rawOrganizations is! List) {
+      return const <Map<String, dynamic>>[];
+    }
+
+    return rawOrganizations
+        .whereType<Map>()
+        .map(
+          (item) => Map<String, dynamic>.from(item),
+        )
+        .where(
+          (item) =>
+              (item['organization_id']?.toString() ?? '').isNotEmpty &&
+              (item['organization_name']?.toString() ?? '').isNotEmpty,
+        )
+        .toList(growable: false);
   }
 
   Future<void> startActivation() async {
@@ -166,7 +194,11 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
     }
   }
 
-  Future<void> verifyActivation() async {
+  Future<void> verifyActivation() => _verifyActivation();
+
+  Future<void> _verifyActivation({
+    String? organizationId,
+  }) async {
     final id = challengeId;
     final phone = normalizedPhone;
     final code = codeController.text.trim();
@@ -200,14 +232,45 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
     setState(() => loading = true);
 
     try {
-      await api.post(
+      final body = <String, dynamic>{
+        'challenge_id': id,
+        'code': code,
+        'password': password,
+      };
+
+      if (organizationId != null && organizationId.isNotEmpty) {
+        body['organization_id'] = organizationId;
+      }
+
+      final response = await api.post(
         '/b2b/auth/activate/verify',
-        {
-          'challenge_id': id,
-          'code': code,
-          'password': password,
-        },
+        body,
       );
+
+      if (response['selection_required'] == true) {
+        final choices = _organizationChoicesFrom(response);
+
+        if (choices.isEmpty) {
+          throw const B2BApiException(
+            'Firma seçimi bilgisi alınamadı.',
+          );
+        }
+
+        await SmsRetrieverService.instance.stop();
+
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          organizationChoices = choices;
+          loading = false;
+        });
+
+        return;
+      }
+
+      organizationChoices = const <Map<String, dynamic>>[];
 
       await SmsRetrieverService.instance.stop();
       TextInput.finishAutofillContext(shouldSave: false);
@@ -242,13 +305,24 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
   @override
   Widget build(BuildContext context) {
     final started = challengeId != null;
+    final choosingOrganization = selectingOrganization;
 
     return FlowScaffold(
       title: 'Kurumsal Aktivasyon',
       bottom: PrimaryButton(
-        text: started ? 'Aktivasyonu Tamamla' : 'Aktivasyon Kodu Gönder',
+        text: choosingOrganization
+            ? 'Firma Seçin'
+            : started
+                ? 'Aktivasyonu Tamamla'
+                : 'Aktivasyon Kodu Gönder',
         loading: loading,
-        onPressed: started ? verifyActivation : startActivation,
+        onPressed: choosingOrganization
+            ? () => _error(
+                  'Devam etmek için bir firma seçiniz.',
+                )
+            : started
+                ? verifyActivation
+                : startActivation,
       ),
       children: [
         const FlowHeader(
@@ -302,6 +376,67 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
                   label: 'Şifre tekrar',
                   obscureText: true,
                 ),
+                if (choosingOrganization) ...[
+                  const SizedBox(height: 18),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Firma Seçimi',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Telefon numaranız doğrulandı. '
+                      'Aktive etmek istediğiniz firmayı seçin.',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...organizationChoices.map(
+                    (organization) {
+                      final organizationId =
+                          organization['organization_id']?.toString() ?? '';
+                      final organizationName =
+                          organization['organization_name']?.toString() ?? '-';
+                      final organizationRole =
+                          organization['role']?.toString() ?? '';
+
+                      return Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          key: ValueKey(
+                            'b2b-activation-org-$organizationId',
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(
+                            Icons.business_outlined,
+                          ),
+                          title: Text(
+                            organizationName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          subtitle: organizationRole.isEmpty
+                              ? null
+                              : Text('Rol: $organizationRole'),
+                          trailing: const Icon(
+                            Icons.chevron_right_rounded,
+                          ),
+                          onTap: loading || organizationId.isEmpty
+                              ? null
+                              : () => _verifyActivation(
+                                    organizationId: organizationId,
+                                  ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ],
           ),

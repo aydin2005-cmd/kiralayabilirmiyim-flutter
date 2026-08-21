@@ -1,110 +1,110 @@
-sha=e10dee67dd26daf20424176f5e4e4fd3ecfe9952
+sha=abce042dd5a30d55b6e9335a91e28391538d9442
 flutter_setup=success
 pub_get=success
 targeted_tests=failure
-analyze=failure
+analyze=success
 suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_consolidated_hardening
 --- targeted_diagnostic_tail ---
-lib/widgets/flow_widgets.dart:271:9: Context: Found this candidate, but the arguments don't match.
-  const FlowTextField(
-        ^^^^^^^^^^^^^
-lib/screens/b2b_registration_screen.dart:287:17: Error: No named parameter with the name 'autocorrect'.
-                autocorrect: false,
-                ^^^^^^^^^^^
-lib/widgets/flow_widgets.dart:271:9: Context: Found this candidate, but the arguments don't match.
-  const FlowTextField(
-        ^^^^^^^^^^^^^
-.
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: paid awaiting activation retries until active status
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: failed status shows friendly message
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: cancelled status shows friendly message
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: refunded status shows friendly message
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: duplicate submit triggers only one registration request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: manual status button still checks backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: manual status during auto-check does not duplicate request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: dispose during delayed retry does not update disposed widget
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: portal keeps return-refresh hook for package screen
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: generalized duplicate conflict keeps form and blocks activation
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: unexpected error shows safe fallback message
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: legacy persisted B2B token is ignored after process restart policy
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: B2B token is runtime-only and legacy secure-storage token is removed
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: first package checkout does not request replacement without pending id
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: package checkout replaces only the persisted pending payment id
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: 429 keeps form values and shows retry hint
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: malformed success phone does not navigate to activation
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: successful registration navigates to editable activation phone
+::endgroup::
+::group::❌ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: login exposes forgot-password flow with fixed Turkey phone field (failed)
+
+Warning: A call to tap() with finder "Found 1 widget with text "Şifremi Unuttum": [
+  Text("Şifremi Unuttum", dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(643.3, 526.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#deb75 relayoutBoundary=up22
+The hit test result at that offset is: HitTestResult(RenderPointerListener#2a200@Offset(623.3, 2.0), RenderSemanticsAnnotations#1f1c3@Offset(623.3, 2.0), RenderMouseRegion#a065a@Offset(623.3, 2.0), RenderSemanticsAnnotations#526f2@Offset(623.3, 2.0), _RenderInkFeatures#91da1@Offset(623.3, 2.0), RenderCustomPaint#58fc4@Offset(623.3, 2.0), RenderPhysicalShape#517e8@Offset(623.3, 2.0), RenderConstrainedBox#dd279@Offset(623.3, 2.0), _RenderInputPadding#c44d5@Offset(623.3, 2.0), RenderSemanticsAnnotations#b8282@Offset(623.3, 2.0), RenderDecoratedBox#f2096@Offset(623.3, 2.0), RenderPadding#5ad12@Offset(643.3, 10.0), RenderDecoratedBox#48740@Offset(643.3, 10.0), RenderPadding#999c6@Offset(643.3, 10.0), RenderPadding#9d704@Offset(643.3, 10.0), RenderCustomMultiChildLayoutBox#bf29f@Offset(643.3, 526.0), _RenderInkFeatures#16854@Offset(643.3, 526.0), RenderPhysicalModel#7cc70@Offset(643.3, 526.0), RenderSemanticsAnnotations#773b3@Offset(643.3, 526.0), RenderRepaintBoundary#016ba@Offset(643.3, 526.0), RenderIgnorePointer#9770a@Offset(643.3, 526.0), RenderAnimatedOpacity#7313d@Offset(643.3, 526.0), RenderAnimatedOpacity#6ccdf@Offset(643.3, 526.0), _RenderColoredBox#76105@Offset(643.3, 526.0), RenderAnimatedOpacity#f1743@Offset(643.3, 526.0), RenderIgnorePointer#ca2cb@Offset(643.3, 526.0), RenderAnimatedOpacity#993c1@Offset(643.3, 526.0), RenderRepaintBoundary#16420@Offset(643.3, 526.0), RenderSemanticsAnnotations#8d3ee@Offset(643.3, 526.0), RenderOffstage#0d54c@Offset(643.3, 526.0), RenderSemanticsAnnotations#f1326@Offset(643.3, 526.0), _RenderTheater#755ce@Offset(643.3, 526.0), RenderAbsorbPointer#28acd@Offset(643.3, 526.0), RenderPointerListener#9be94@Offset(643.3, 526.0), RenderSemanticsAnnotations#d3d9c@Offset(643.3, 526.0), RenderCustomPaint#d99ff@Offset(643.3, 526.0), RenderSemanticsAnnotations#40444@Offset(643.3, 526.0), RenderSemanticsAnnotations#bafdc@Offset(643.3, 526.0), RenderSemanticsAnnotations#b7315@Offset(643.3, 526.0), RenderTapRegionSurface#05de1@Offset(643.3, 526.0), RenderSemanticsAnnotations#a878f@Offset(643.3, 526.0), RenderSemanticsAnnotations#ef9ce@Offset(643.3, 526.0), HitTestEntry<HitTestTarget>#ad86f(_ReusableRenderView#9f0ea), HitTestEntry<HitTestTarget>#f68ae(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:113:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TypeWidgetFinder:<Found 0 widgets with type "B2BPasswordResetScreen": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:116:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 116
+The test description was:
+  login exposes forgot-password flow with fixed Turkey phone field
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: login exposes forgot-password flow with fixed Turkey phone field
 
 ::endgroup::
-::group::❌ loading /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart (failed after test completion)
-Error: The Dart compiler exited unexpectedly.
-package:flutter_tools/src/base/common.dart 34:3  throwToolExit
-package:flutter_tools/src/compile.dart 1024:11   DefaultResidentCompiler._compile.<fn>
-dart:async/zone_root.dart 48:47                  _rootRunUnary
-dart:async/zone.dart 816:35                      _CustomZone.runUnary
-dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
-dart:async/future_impl.dart 977:13               Future._propagateToListeners
-dart:async/future_impl.dart 862:9                Future._propagateToListeners
-dart:async/future_impl.dart 720:5                Future._completeWithValue
-dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
-dart:async/zone_root.dart 35:13                  _rootRun
-dart:async/zone.dart 810:35                      _CustomZone.run
-dart:async/zone.dart 702:7                       _CustomZone.runGuarded
-dart:async/zone.dart 743:23                      _CustomZone.bindCallbackGuarded.<fn>
-dart:async/schedule_microtask.dart 40:35         _microtaskLoop
-dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
-dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
-dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
-::endgroup::
-lib/services/b2b_api_client.dart:230:10: Error: Type 'Uint8List' not found.
-  Future<Uint8List> getBytes(String path) async {
-         ^^^^^^^^^
-::group::❌ loading /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart (failed)
-Failed to load "/home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart":
-Compilation failed for testPath=/home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: lib/services/b2b_api_client.dart:230:10: Error: Type 'Uint8List' not found.
-  Future<Uint8List> getBytes(String path) async {
-         ^^^^^^^^^
-.
+::group::❌ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: applicant referral screen states that organization sends link (failed)
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextWidgetFinder:<Found 0 widgets with text "Bu davet linki sistem tarafından
+gönderilmez.
+          Lütfen bağlantıyı ilgili kişiye WhatsApp, SMS veya başka bir iletişim aracıyla siz
+gönderiniz.": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:131:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 131
+The test description was:
+  applicant referral screen states that organization sends link
+════════════════════════════════════════════════════════════════════════════════════════════════════
+Test failed. See exception logs above.
+The test description was: applicant referral screen states that organization sends link
 
 ::endgroup::
-::group::❌ loading /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart (failed after test completion)
-Error: The Dart compiler exited unexpectedly.
-package:flutter_tools/src/base/common.dart 34:3  throwToolExit
-package:flutter_tools/src/compile.dart 1024:11   DefaultResidentCompiler._compile.<fn>
-dart:async/zone_root.dart 48:47                  _rootRunUnary
-dart:async/zone.dart 816:35                      _CustomZone.runUnary
-dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
-dart:async/future_impl.dart 977:13               Future._propagateToListeners
-dart:async/future_impl.dart 862:9                Future._propagateToListeners
-dart:async/future_impl.dart 720:5                Future._completeWithValue
-dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
-dart:async/zone_root.dart 35:13                  _rootRun
-dart:async/zone.dart 810:35                      _CustomZone.run
-dart:async/zone.dart 702:7                       _CustomZone.runGuarded
-dart:async/zone.dart 743:23                      _CustomZone.bindCallbackGuarded.<fn>
-dart:async/schedule_microtask.dart 40:35         _microtaskLoop
-dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
-dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
-dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
-::endgroup::
-lib/services/b2b_api_client.dart:230:10: Error: Type 'Uint8List' not found.
-  Future<Uint8List> getBytes(String path) async {
-         ^^^^^^^^^
-lib/screens/b2b_password_reset_screen.dart:216:17: Error: No named parameter with the name 'enabled'.
-                enabled: !waitingForCode && !loading,
-                ^^^^^^^
-lib/widgets/flow_widgets.dart:271:9: Context: Found this candidate, but the arguments don't match.
-  const FlowTextField(
-        ^^^^^^^^^^^^^
-lib/screens/b2b_registration_screen.dart:287:17: Error: No named parameter with the name 'autocorrect'.
-                autocorrect: false,
-                ^^^^^^^^^^^
-lib/widgets/flow_widgets.dart:271:9: Context: Found this candidate, but the arguments don't match.
-  const FlowTextField(
-        ^^^^^^^^^^^^^
-::group::❌ loading /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart (failed)
-Failed to load "/home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart":
-Compilation failed for testPath=/home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: lib/services/b2b_api_client.dart:230:10: Error: Type 'Uint8List' not found.
-  Future<Uint8List> getBytes(String path) async {
-         ^^^^^^^^^
-lib/screens/b2b_password_reset_screen.dart:216:17: Error: No named parameter with the name 'enabled'.
-                enabled: !waitingForCode && !loading,
-                ^^^^^^^
-lib/widgets/flow_widgets.dart:271:9: Context: Found this candidate, but the arguments don't match.
-  const FlowTextField(
-        ^^^^^^^^^^^^^
-lib/screens/b2b_registration_screen.dart:287:17: Error: No named parameter with the name 'autocorrect'.
-                autocorrect: false,
-                ^^^^^^^^^^^
-lib/widgets/flow_widgets.dart:271:9: Context: Found this candidate, but the arguments don't match.
-  const FlowTextField(
-        ^^^^^^^^^^^^^
-.
-
+::group::✅ Passing tests
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: password reset endpoints are public and carry expected payloads
 ::endgroup::
 
-::error::0 tests passed, 4 failed.
+::error::40 tests passed, 2 failed.
 --- analyze_diagnostic_tail ---
 Analyzing kiralayabilirmiyim-flutter...                         
 
@@ -112,10 +112,7 @@ Analyzing kiralayabilirmiyim-flutter...
    info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/screens/analysis_screen.dart:58:9 • curly_braces_in_flow_control_structures
    info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/screens/analysis_screen.dart:66:9 • curly_braces_in_flow_control_structures
    info • The 'children' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list • lib/screens/analysis_screen.dart:78:11 • sort_child_properties_last
-  error • The named parameter 'enabled' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'enabled' • lib/screens/b2b_password_reset_screen.dart:216:17 • undefined_named_parameter
    info • The 'children' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list • lib/screens/b2b_referral_choice_screen.dart:193:9 • sort_child_properties_last
-  error • The named parameter 'autocorrect' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'autocorrect' • lib/screens/b2b_registration_screen.dart:287:17 • undefined_named_parameter
-  error • The named parameter 'enableSuggestions' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'enableSuggestions' • lib/screens/b2b_registration_screen.dart:288:17 • undefined_named_parameter
    info • The 'children' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list • lib/screens/b2b_report_consent_screen.dart:126:9 • sort_child_properties_last
    info • The 'children' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list • lib/screens/b2b_report_consent_screen.dart:144:7 • sort_child_properties_last
    info • The 'children' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list • lib/screens/car_rental_form_screen.dart:67:7 • sort_child_properties_last
@@ -167,8 +164,7 @@ warning • Returning a 'Future' without 'await' inside a try block. Try adding 
    info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/screens/result_screen.dart:1760:27 • curly_braces_in_flow_control_structures
    info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/screens/result_screen.dart:1890:7 • curly_braces_in_flow_control_structures
    info • The 'children' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list • lib/screens/splash_screen.dart:15:7 • sort_child_properties_last
-  error • The name 'Uint8List' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'Uint8List' • lib/services/b2b_api_client.dart:230:10 • non_type_as_type_argument
    info • 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre. Try replacing the use of the deprecated member with the replacement • lib/theme/app_theme.dart:16:9 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/widgets/flow_widgets.dart:78:26 • deprecated_member_use
 
-62 issues found. (ran in 8.1s)
+58 issues found. (ran in 8.3s)

@@ -230,6 +230,33 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        const PremiumCard(
+          background: FlowColors.amberBg,
+          borderColor: FlowColors.amberBorder,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                color: FlowColors.navyDark,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Bu davet linki sistem tarafından gönderilmez.\n'
+                  'Lütfen bağlantıyı ilgili kişiye WhatsApp, SMS veya başka bir iletişim aracıyla siz gönderiniz.',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    height: 1.38,
+                    fontWeight: FontWeight.w800,
+                    color: FlowColors.navyDark,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 18),
         if (loading && referrals.isEmpty)
           const Center(child: CircularProgressIndicator())

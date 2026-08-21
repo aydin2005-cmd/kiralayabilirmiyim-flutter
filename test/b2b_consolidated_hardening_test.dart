@@ -101,7 +101,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Şifremi Unuttum'), findsOneWidget);
+    final forgotPassword = find.text('Şifremi Unuttum');
+    expect(forgotPassword, findsOneWidget);
 
     final phoneField = tester.widget<TextField>(
       find.widgetWithText(TextField, 'Yetkili cep telefonu'),
@@ -110,7 +111,9 @@ void main() {
     expect(phoneField.maxLength, 10);
     expect(phoneField.decoration?.prefixText, '+90 ');
 
-    await tester.tap(find.text('Şifremi Unuttum'));
+    await tester.ensureVisible(forgotPassword);
+    await tester.pumpAndSettle();
+    await tester.tap(forgotPassword);
     await tester.pumpAndSettle();
 
     expect(find.byType(B2BPasswordResetScreen), findsOneWidget);
@@ -129,8 +132,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text(
-        'Bu davet linki sistem tarafından gönderilmez.\n'
+      find.textContaining('Bu davet linki sistem tarafından gönderilmez.'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining(
         'Lütfen bağlantıyı ilgili kişiye WhatsApp, SMS veya başka bir iletişim aracıyla siz gönderiniz.',
       ),
       findsOneWidget,

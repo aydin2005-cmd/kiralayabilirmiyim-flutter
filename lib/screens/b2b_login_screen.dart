@@ -7,6 +7,7 @@ import '../services/otp_autofill_coordinator.dart';
 import '../services/sms_retriever_service.dart';
 import '../widgets/flow_widgets.dart';
 import '../widgets/primary_button.dart';
+import 'b2b_password_reset_screen.dart';
 import 'b2b_portal_screen.dart';
 
 class B2BLoginScreen extends StatefulWidget {
@@ -42,7 +43,9 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   @override
   void initState() {
     super.initState();
-    phoneController = TextEditingController(text: widget.initialPhone ?? '');
+    phoneController = TextEditingController(
+      text: turkeyMobileFieldDigits(widget.initialPhone ?? ''),
+    );
     api = widget.apiClient ?? B2BApiClient();
     otpAutofill = OtpAutofillCoordinator(
       controller: codeController,
@@ -322,6 +325,24 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
     }
   }
 
+  Future<void> _openPasswordReset() async {
+    await SmsRetrieverService.instance.stop();
+
+    if (!mounted) {
+      return;
+    }
+
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => B2BPasswordResetScreen(
+          initialPhone: phoneController.text,
+          apiClient: api,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final waitingOtp = challengeId != null;
@@ -359,9 +380,12 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
               FlowTextField(
                 controller: phoneController,
                 label: 'Yetkili cep telefonu',
+                helper: 'Başında 0 olmadan 5XXXXXXXXX formatında giriniz.',
+                prefixText: '+90 ',
                 keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                maxLength: 10,
+                inputFormatters: const [
+                  TurkeyMobileFieldFormatter(),
                 ],
                 onChanged: _onCredentialChanged,
               ),
@@ -372,6 +396,14 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
                 obscureText: true,
                 onChanged: _onCredentialChanged,
               ),
+              if (!waitingOtp && !choosingOrganization)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: loading ? null : _openPasswordReset,
+                    child: const Text('Şifremi Unuttum'),
+                  ),
+                ),
               if (choosingOrganization) ...[
                 const SizedBox(height: 14),
                 const Align(

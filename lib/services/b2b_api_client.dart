@@ -14,6 +14,7 @@ class B2BApiClient {
 
   static const _storage = FlutterSecureStorage();
   static const _tokenKey = 'b2b_access_token';
+  static const _pendingPaymentKey = 'b2b_pending_payment_id';
 
   final http.Client _httpClient;
 
@@ -38,13 +39,64 @@ class B2BApiClient {
     }
   }
 
+  Future<void> savePendingPaymentId(
+    String paymentId,
+  ) async {
+    final normalized = paymentId.trim();
+
+    if (normalized.isEmpty) {
+      await clearPendingPaymentId();
+      return;
+    }
+
+    try {
+      await _storage.write(
+        key: _pendingPaymentKey,
+        value: normalized,
+      );
+    } catch (_) {
+      // Payment recovery persistence is best effort.
+      // Backend payment state remains authoritative.
+    }
+  }
+
+  Future<String?> readPendingPaymentId() async {
+    try {
+      final value = await _storage.read(
+        key: _pendingPaymentKey,
+      );
+
+      final normalized = value?.trim();
+
+      if (normalized == null || normalized.isEmpty) {
+        return null;
+      }
+
+      return normalized;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> clearPendingPaymentId() async {
+    try {
+      await _storage.delete(
+        key: _pendingPaymentKey,
+      );
+    } catch (_) {
+      // Best-effort cleanup only.
+    }
+  }
+
   Future<void> clearToken() async {
     try {
       await _storage.delete(key: _tokenKey);
     } catch (_) {
-      // B2B token cleanup is best effort and intentionally does not
+      // B2B session cleanup is best effort and intentionally does not
       // delete the candidate application's separate access token.
     }
+
+    await clearPendingPaymentId();
   }
 
   Future<Map<String, String>> _headers({

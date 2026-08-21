@@ -3,10 +3,40 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:kiralayabilir_miyim/screens/b2b_packages_screen.dart';
 import 'package:kiralayabilir_miyim/services/b2b_api_client.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'pending payment storage survives client recreation and clears on logout',
+    () async {
+      FlutterSecureStorage.setMockInitialValues({});
+
+      final first = B2BApiClient();
+
+      await first.savePendingPaymentId(
+        ' payment-1 ',
+      );
+
+      final second = B2BApiClient();
+
+      expect(
+        await second.readPendingPaymentId(),
+        'payment-1',
+      );
+
+      await second.clearToken();
+
+      expect(
+        await second.readPendingPaymentId(),
+        isNull,
+      );
+    },
+  );
+
   testWidgets('checkout stores payment id and opens checkout URL',
       (tester) async {
     final api = _FakeB2BApiClient();
@@ -21,6 +51,7 @@ void main() {
     expect(api.postPaths, ['/b2b/packages/checkout']);
     expect(api.postBodies.single, {'product_id': 'product-1'});
     expect(opened, [Uri.parse('https://paytr.example/checkout')]);
+    expect(api.pendingPaymentId, 'payment-1');
     expect(find.text('Ödeme ID: payment-1'), findsOneWidget);
   });
 
@@ -36,6 +67,81 @@ void main() {
 
     expect(api.getPaths, isEmpty);
   });
+
+  testWidgets(
+    'persisted payment restores after process restart and checks backend',
+    (tester) async {
+      final api = _FakeB2BApiClient(
+        pendingPaymentId: 'payment-1',
+        statusResponses: [_pendingStatus()],
+      );
+
+      await tester.pumpWidget(
+        _app(
+          api: api,
+          autoRetryCount: 0,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        api.getPaths,
+        ['/b2b/packages/payments/payment-1'],
+      );
+
+      expect(
+        find.text('Ödeme ID: payment-1'),
+        findsOneWidget,
+      );
+
+      expect(
+        api.pendingPaymentId,
+        'payment-1',
+      );
+    },
+  );
+
+  testWidgets(
+    'terminal restored payment clears recovery state',
+    (tester) async {
+      final api = _FakeB2BApiClient(
+        pendingPaymentId: 'payment-1',
+        statusResponses: [_activeStatus()],
+      );
+
+      await tester.pumpWidget(
+        _app(
+          api: api,
+          autoRetryCount: 0,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        api.getPaths,
+        ['/b2b/packages/payments/payment-1'],
+      );
+
+      expect(
+        api.pendingPaymentId,
+        isNull,
+      );
+
+      expect(
+        api.pendingPaymentClearCount,
+        1,
+      );
+
+      expect(
+        find.text(
+          'Ödemeniz alındı. Paketiniz hesabınıza tanımlandı.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('app resume with pending payment checks backend', (tester) async {
     final api = _FakeB2BApiClient(
@@ -426,6 +532,10 @@ class _FakeB2BApiClient extends B2BApiClient {
   final List<Map<String, dynamic>> statusResponses;
   final Completer<Map<String, dynamic>>? statusCompleter;
 
+  String? pendingPaymentId;
+  final pendingPaymentWrites = <String>[];
+  int pendingPaymentClearCount = 0;
+
   final postPaths = <String>[];
   final postBodies = <Map<String, dynamic>>[];
   final getPaths = <String>[];
@@ -433,7 +543,32 @@ class _FakeB2BApiClient extends B2BApiClient {
   _FakeB2BApiClient({
     this.statusResponses = const [],
     this.statusCompleter,
+    this.pendingPaymentId,
   });
+
+  @override
+  Future<void> savePendingPaymentId(
+    String paymentId,
+  ) async {
+    final normalized = paymentId.trim();
+
+    pendingPaymentWrites.add(
+      normalized,
+    );
+
+    pendingPaymentId = normalized.isEmpty ? null : normalized;
+  }
+
+  @override
+  Future<String?> readPendingPaymentId() async {
+    return pendingPaymentId;
+  }
+
+  @override
+  Future<void> clearPendingPaymentId() async {
+    pendingPaymentClearCount++;
+    pendingPaymentId = null;
+  }
 
   @override
   Future<List<Map<String, dynamic>>> getList(String path) async {

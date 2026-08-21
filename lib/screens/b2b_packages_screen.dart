@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,7 +53,7 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
     );
 
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _handlePaymentReturnSignal(),
+      (_) => unawaited(_recoverPaymentOnOpen()),
     );
 
     loadProducts();
@@ -79,16 +81,89 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
   void _handlePaymentReturnSignal() {
     final paymentId = B2BPaymentReturnSignal.instance.takePendingPaymentId();
 
-    if (!mounted || paymentId == null || paymentId.isEmpty) {
+    if (paymentId == null || paymentId.isEmpty) {
       return;
     }
 
+    unawaited(
+      _adoptPaymentId(
+        paymentId,
+        persist: true,
+        message: 'Ödeme dönüşü alındı. Durum doğrulanıyor...',
+      ),
+    );
+  }
+
+  Future<void> _recoverPaymentOnOpen() async {
+    final returnedPaymentId =
+        B2BPaymentReturnSignal.instance.takePendingPaymentId();
+
+    if (returnedPaymentId != null && returnedPaymentId.isNotEmpty) {
+      await _adoptPaymentId(
+        returnedPaymentId,
+        persist: true,
+        message: 'Ödeme dönüşü alındı. Durum doğrulanıyor...',
+      );
+      return;
+    }
+
+    final restoredPaymentId = await api.readPendingPaymentId();
+
+    if (!mounted ||
+        restoredPaymentId == null ||
+        restoredPaymentId.isEmpty ||
+        lastPaymentId != null) {
+      return;
+    }
+
+    await _adoptPaymentId(
+      restoredPaymentId,
+      persist: false,
+    );
+  }
+
+  Future<void> _adoptPaymentId(
+    String paymentId, {
+    required bool persist,
+    String? message,
+  }) async {
+    final normalized = paymentId.trim();
+
+    if (normalized.isEmpty) {
+      return;
+    }
+
+    if (persist) {
+      await api.savePendingPaymentId(
+        normalized,
+      );
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    final changesPayment = lastPaymentId != normalized;
+
+    if (changesPayment) {
+      _paymentCheckEpoch++;
+    }
+
     setState(() {
-      lastPaymentId = paymentId;
-      paymentMessage = 'Ödeme dönüşü alındı. Durum doğrulanıyor...';
+      if (changesPayment) {
+        checkingPayment = false;
+      }
+
+      lastPaymentId = normalized;
+
+      if (message != null) {
+        paymentMessage = message;
+      }
     });
 
-    _checkPaymentStatus(auto: true);
+    await _checkPaymentStatus(
+      auto: true,
+    );
   }
 
   void error(String text) {
@@ -151,6 +226,10 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
       if (paymentId == null || paymentId.isEmpty) {
         throw const B2BApiException('Ödeme kaydı oluşturulamadı.');
       }
+
+      await api.savePendingPaymentId(
+        paymentId,
+      );
 
       setState(() {
         lastPaymentId = paymentId;
@@ -220,6 +299,10 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
           paymentStatus = status;
           paymentMessage = assessment.message;
         });
+
+        if (_isTerminalPaymentStatus(status)) {
+          await api.clearPendingPaymentId();
+        }
 
         if (!assessment.shouldRetry || finalAttempt) {
           break;
@@ -295,6 +378,27 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
     return const _PaymentAssessment(
       'Ödeme durumunuz kontrol edildi. Biraz sonra tekrar deneyebilirsiniz.',
     );
+  }
+
+  bool _isTerminalPaymentStatus(
+    Map<String, dynamic> status,
+  ) {
+    final payment = status['payment_status']?.toString();
+
+    final purchase = status['purchase_status']?.toString();
+
+    if (payment == 'failed' ||
+        payment == 'cancelled' ||
+        purchase == 'cancelled' ||
+        payment == 'refunded' ||
+        purchase == 'refunded') {
+      return true;
+    }
+
+    return payment == 'paid' &&
+        (purchase == 'active' ||
+            purchase == 'exhausted' ||
+            purchase == 'expired');
   }
 
   Widget productCard(Map<String, dynamic> product) {

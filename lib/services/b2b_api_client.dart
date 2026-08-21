@@ -128,12 +128,17 @@ class B2BApiClient {
   ) async {
     final requestBody = Map<String, dynamic>.from(body);
 
-    // A deliberate package purchase tap must start a fresh PayTR checkout
-    // rather than silently reopening an abandoned pending iframe. Automatic
-    // payment recovery uses GET and therefore never triggers this policy.
+    // A deliberate package purchase tap supersedes only the exact pending
+    // payment this app previously adopted. With no persisted pending payment,
+    // normal backend checkout/reuse behavior remains unchanged.
     if (path == '/b2b/packages/checkout' &&
         !requestBody.containsKey('replace_pending')) {
-      requestBody['replace_pending'] = true;
+      final pendingPaymentId = await readPendingPaymentId();
+
+      if (pendingPaymentId != null && pendingPaymentId.isNotEmpty) {
+        requestBody['replace_pending'] = true;
+        requestBody['replace_pending_payment_id'] = pendingPaymentId;
+      }
     }
 
     final response = await _httpClient.post(

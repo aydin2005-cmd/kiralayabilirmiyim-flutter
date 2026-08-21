@@ -18,6 +18,43 @@ void main() {
     expect(client, contains("static const _tokenKey = 'b2b_access_token'"));
     expect(client, isNot(contains("static const _tokenKey = 'access_token'")));
     expect(splash, contains('B2BEntryScreen'));
+
+    expect(
+      splash,
+      contains('ElevatedButton.icon'),
+    );
+    expect(
+      splash,
+      contains(
+        'backgroundColor: FlowColors.navy',
+      ),
+    );
+    expect(
+      splash,
+      contains(
+        'foregroundColor: Colors.white',
+      ),
+    );
+    expect(
+      splash,
+      contains(
+        'minimumSize: const Size.fromHeight(56)',
+      ),
+    );
+    expect(
+      splash,
+      contains('fontSize: 17'),
+    );
+    expect(
+      splash,
+      contains(
+        'fontWeight: FontWeight.w900',
+      ),
+    );
+    expect(
+      splash,
+      contains('size: 22'),
+    );
     expect(splash, contains('Kurumsal Giriş'));
   });
 

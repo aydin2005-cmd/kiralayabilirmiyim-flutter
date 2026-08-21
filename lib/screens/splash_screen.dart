@@ -94,15 +94,39 @@ class SplashScreen extends StatelessWidget {
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: ElevatedButton.icon(
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const B2BEntryScreen(),
                 ),
               ),
-              icon: const Icon(Icons.business_center_outlined),
-              label: const Text('Kurumsal Giriş'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: FlowColors.navy,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                shadowColor: FlowColors.navy,
+                minimumSize: const Size.fromHeight(56),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.15,
+                ),
+              ),
+              icon: const Icon(
+                Icons.business_center_outlined,
+                size: 22,
+              ),
+              label: const Text(
+                'Kurumsal Giriş',
+              ),
             ),
           ),
         ],

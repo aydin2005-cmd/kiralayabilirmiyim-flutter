@@ -39,18 +39,21 @@ jobs:
         name: Run targeted B2B Flutter tests only
         if: steps.pubget.outcome == 'success'
         continue-on-error: true
-        run: >-
-          flutter test
-          test/b2b_registration_test.dart
-          test/b2b_multi_org_login_test.dart
-          test/b2b_packages_payment_return_test.dart
-          test/b2b_consolidated_hardening_test.dart
+        run: |
+          set -o pipefail
+          flutter test \
+            test/b2b_registration_test.dart \
+            test/b2b_multi_org_login_test.dart \
+            test/b2b_packages_payment_return_test.dart \
+            test/b2b_consolidated_hardening_test.dart 2>&1 | tee /tmp/flutter-targeted.log
 
       - id: analyze
         name: Run Flutter analyzer
         if: steps.pubget.outcome == 'success'
         continue-on-error: true
-        run: flutter analyze --no-fatal-infos
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-infos 2>&1 | tee /tmp/flutter-analyze.log
 
       - name: Record targeted result on development branch
         if: always()
@@ -62,14 +65,26 @@ jobs:
           TEST_SHA: ${{ github.sha }}
         run: |
           mkdir -p .ci-results
-          cat > .ci-results/flutter-b2b-targeted.txt <<EOF
-          sha=$TEST_SHA
-          flutter_setup=$FLUTTER_OUTCOME
-          pub_get=$PUBGET_OUTCOME
-          targeted_tests=$TEST_OUTCOME
-          analyze=$ANALYZE_OUTCOME
-          suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_consolidated_hardening
-          EOF
+          {
+            echo "sha=$TEST_SHA"
+            echo "flutter_setup=$FLUTTER_OUTCOME"
+            echo "pub_get=$PUBGET_OUTCOME"
+            echo "targeted_tests=$TEST_OUTCOME"
+            echo "analyze=$ANALYZE_OUTCOME"
+            echo "suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_consolidated_hardening"
+            echo "--- targeted_diagnostic_tail ---"
+            if [ -f /tmp/flutter-targeted.log ]; then
+              tail -n 100 /tmp/flutter-targeted.log
+            else
+              echo "targeted test log unavailable"
+            fi
+            echo "--- analyze_diagnostic_tail ---"
+            if [ -f /tmp/flutter-analyze.log ]; then
+              tail -n 100 /tmp/flutter-analyze.log
+            else
+              echo "analyzer log unavailable"
+            fi
+          } > .ci-results/flutter-b2b-targeted.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .ci-results/flutter-b2b-targeted.txt

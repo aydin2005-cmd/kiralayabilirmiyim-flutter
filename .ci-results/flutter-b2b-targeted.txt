@@ -1,10 +1,33 @@
-sha=abce042dd5a30d55b6e9335a91e28391538d9442
+sha=f8d6013b7cc86d2b1f4d13c0fa45411900237cce
 flutter_setup=success
 pub_get=success
 targeted_tests=failure
 analyze=success
 suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_consolidated_hardening
 --- targeted_diagnostic_tail ---
+
+::group::✅ Passing tests
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_multi_org_login_test.dart: multi-org login selects organization before OTP challenge
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: entry screen shows registration CTA and opens form
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: empty required fields block registration request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending payment storage survives client recreation and clears on logout
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: invalid tax length blocks registration request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: invalid email blocks registration request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: invalid mobile blocks registration request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: checkout stores payment id and opens checkout URL
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: app resume with no payment id does not check backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: persisted payment restores after process restart and checks backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: terminal restored payment clears recovery state
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: registration sends normalized phone and only business keys
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: supported pasted Turkish phone forms are reduced to field digits
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: self-service registration request is public and omits bearer token
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: app resume with pending payment checks backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: browser return alone never shows success before backend response
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: multiple resume signals do not start duplicate check loops
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending response does not show success UI
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: registration is blocked until privacy and terms are accepted
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending retries until active status shows success
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: paid awaiting activation is not final success
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: paid awaiting activation retries until active status
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: failed status shows friendly message
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: cancelled status shows friendly message
@@ -25,27 +48,6 @@ suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_conso
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: successful registration navigates to editable activation phone
 ::endgroup::
 ::group::❌ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: login exposes forgot-password flow with fixed Turkey phone field (failed)
-
-Warning: A call to tap() with finder "Found 1 widget with text "Şifremi Unuttum": [
-  Text("Şifremi Unuttum", dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
-]" derived an Offset (Offset(643.3, 526.0)) that would not hit test on the specified widget.
-Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
-The finder corresponds to this RenderBox: RenderParagraph#deb75 relayoutBoundary=up22
-The hit test result at that offset is: HitTestResult(RenderPointerListener#2a200@Offset(623.3, 2.0), RenderSemanticsAnnotations#1f1c3@Offset(623.3, 2.0), RenderMouseRegion#a065a@Offset(623.3, 2.0), RenderSemanticsAnnotations#526f2@Offset(623.3, 2.0), _RenderInkFeatures#91da1@Offset(623.3, 2.0), RenderCustomPaint#58fc4@Offset(623.3, 2.0), RenderPhysicalShape#517e8@Offset(623.3, 2.0), RenderConstrainedBox#dd279@Offset(623.3, 2.0), _RenderInputPadding#c44d5@Offset(623.3, 2.0), RenderSemanticsAnnotations#b8282@Offset(623.3, 2.0), RenderDecoratedBox#f2096@Offset(623.3, 2.0), RenderPadding#5ad12@Offset(643.3, 10.0), RenderDecoratedBox#48740@Offset(643.3, 10.0), RenderPadding#999c6@Offset(643.3, 10.0), RenderPadding#9d704@Offset(643.3, 10.0), RenderCustomMultiChildLayoutBox#bf29f@Offset(643.3, 526.0), _RenderInkFeatures#16854@Offset(643.3, 526.0), RenderPhysicalModel#7cc70@Offset(643.3, 526.0), RenderSemanticsAnnotations#773b3@Offset(643.3, 526.0), RenderRepaintBoundary#016ba@Offset(643.3, 526.0), RenderIgnorePointer#9770a@Offset(643.3, 526.0), RenderAnimatedOpacity#7313d@Offset(643.3, 526.0), RenderAnimatedOpacity#6ccdf@Offset(643.3, 526.0), _RenderColoredBox#76105@Offset(643.3, 526.0), RenderAnimatedOpacity#f1743@Offset(643.3, 526.0), RenderIgnorePointer#ca2cb@Offset(643.3, 526.0), RenderAnimatedOpacity#993c1@Offset(643.3, 526.0), RenderRepaintBoundary#16420@Offset(643.3, 526.0), RenderSemanticsAnnotations#8d3ee@Offset(643.3, 526.0), RenderOffstage#0d54c@Offset(643.3, 526.0), RenderSemanticsAnnotations#f1326@Offset(643.3, 526.0), _RenderTheater#755ce@Offset(643.3, 526.0), RenderAbsorbPointer#28acd@Offset(643.3, 526.0), RenderPointerListener#9be94@Offset(643.3, 526.0), RenderSemanticsAnnotations#d3d9c@Offset(643.3, 526.0), RenderCustomPaint#d99ff@Offset(643.3, 526.0), RenderSemanticsAnnotations#40444@Offset(643.3, 526.0), RenderSemanticsAnnotations#bafdc@Offset(643.3, 526.0), RenderSemanticsAnnotations#b7315@Offset(643.3, 526.0), RenderTapRegionSurface#05de1@Offset(643.3, 526.0), RenderSemanticsAnnotations#a878f@Offset(643.3, 526.0), RenderSemanticsAnnotations#ef9ce@Offset(643.3, 526.0), HitTestEntry<HitTestTarget>#ad86f(_ReusableRenderView#9f0ea), HitTestEntry<HitTestTarget>#f68ae(<AutomatedTestWidgetsFlutterBinding>))
-#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
-#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
-#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
-#3      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:113:18)
-<asynchronous suspension>
-#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
-<asynchronous suspension>
-To silence this warning, pass "warnIfMissed: false" to "tap()".
-To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
-
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following TestFailure was thrown running a test:
 Expected: exactly one matching candidate
@@ -53,7 +55,7 @@ Expected: exactly one matching candidate
    Which: means none were found but one was expected
 
 When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:116:5)
+#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:119:5)
 <asynchronous suspension>
 #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -63,7 +65,7 @@ When the exception was thrown, this was the stack:
 (elided one frame from package:stack_trace)
 
 This was caught by the test expectation on the following line:
-  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 116
+  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 119
 The test description was:
   login exposes forgot-password flow with fixed Turkey phone field
 ════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -75,14 +77,12 @@ The test description was: login exposes forgot-password flow with fixed Turkey p
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following TestFailure was thrown running a test:
 Expected: exactly one matching candidate
-  Actual: _TextWidgetFinder:<Found 0 widgets with text "Bu davet linki sistem tarafından
-gönderilmez.
-          Lütfen bağlantıyı ilgili kişiye WhatsApp, SMS veya başka bir iletişim aracıyla siz
-gönderiniz.": []>
+  Actual: _TextContainingWidgetFinder:<Found 0 widgets with text containing Bu davet linki sistem
+tarafından gönderilmez.: []>
    Which: means none were found but one was expected
 
 When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:131:5)
+#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:134:5)
 <asynchronous suspension>
 #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -92,7 +92,7 @@ When the exception was thrown, this was the stack:
 (elided one frame from package:stack_trace)
 
 This was caught by the test expectation on the following line:
-  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 131
+  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 134
 The test description was:
   applicant referral screen states that organization sends link
 ════════════════════════════════════════════════════════════════════════════════════════════════════

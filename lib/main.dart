@@ -8,7 +8,9 @@ import 'screens/b2b_referral_choice_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/api_client.dart';
 import 'services/app_state.dart';
+import 'services/b2b_payment_return_signal.dart';
 import 'services/payment_flow.dart';
+import 'services/payment_return_link_parser.dart';
 import 'services/referral_link_parser.dart';
 import 'theme/app_theme.dart';
 
@@ -75,11 +77,25 @@ class _KiralayabilirMiyimAppState extends State<KiralayabilirMiyimApp> {
       return;
     }
 
-    if (uri.scheme != 'kiralayabilirmiyim' || uri.host != 'payment-result') {
+    final paymentReturn = paymentReturnLinkFromUri(uri);
+
+    if (paymentReturn == null) {
       return;
     }
-    final appId = uri.queryParameters['application_id'];
-    if (appId != null && appId.isNotEmpty) {
+
+    if (paymentReturn.scope == PaymentReturnScope.b2b) {
+      final paymentId = paymentReturn.paymentId;
+
+      if (paymentId != null) {
+        B2BPaymentReturnSignal.instance.notifyPaymentReturn(paymentId);
+      }
+
+      return;
+    }
+
+    final appId = paymentReturn.applicationId;
+
+    if (appId != null) {
       AppState.instance.applicationId = appId;
     }
 

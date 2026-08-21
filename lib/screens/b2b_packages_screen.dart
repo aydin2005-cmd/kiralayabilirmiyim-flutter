@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../services/b2b_api_client.dart';
 import '../services/b2b_helpers.dart';
+import '../services/b2b_payment_return_signal.dart';
 import '../widgets/flow_widgets.dart';
 
 typedef B2BCheckoutLauncher = Future<bool> Function(Uri uri);
@@ -44,12 +45,26 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
     super.initState();
     api = widget.apiClient ?? B2BApiClient();
     WidgetsBinding.instance.addObserver(this);
+
+    B2BPaymentReturnSignal.instance.addListener(
+      _handlePaymentReturnSignal,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _handlePaymentReturnSignal(),
+    );
+
     loadProducts();
   }
 
   @override
   void dispose() {
     _paymentCheckEpoch++;
+
+    B2BPaymentReturnSignal.instance.removeListener(
+      _handlePaymentReturnSignal,
+    );
+
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -59,6 +74,21 @@ class _B2BPackagesScreenState extends State<B2BPackagesScreen>
     if (state == AppLifecycleState.resumed && lastPaymentId != null) {
       _checkPaymentStatus(auto: true);
     }
+  }
+
+  void _handlePaymentReturnSignal() {
+    final paymentId = B2BPaymentReturnSignal.instance.takePendingPaymentId();
+
+    if (!mounted || paymentId == null || paymentId.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      lastPaymentId = paymentId;
+      paymentMessage = 'Ödeme dönüşü alındı. Durum doğrulanıyor...';
+    });
+
+    _checkPaymentStatus(auto: true);
   }
 
   void error(String text) {

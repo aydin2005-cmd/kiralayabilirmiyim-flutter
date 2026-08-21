@@ -1,0 +1,6 @@
+sha=0823753d323682033159ffaeafa3d0182742ce02
+flutter_setup=success
+pub_get=success
+targeted_tests=failure
+analyze=failure
+suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_consolidated_hardening

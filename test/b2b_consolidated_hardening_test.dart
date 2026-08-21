@@ -26,7 +26,6 @@ void main() {
     });
 
     final api = B2BApiClient();
-
     expect(await api.getToken(), isNull);
   });
 
@@ -51,30 +50,32 @@ void main() {
     expect(await api.getToken(), isNull);
   });
 
-  test('deliberate package checkout requests a fresh pending replacement',
+  test('first package checkout does not request replacement without pending id',
       () async {
     final requests = <http.Request>[];
-    final api = B2BApiClient(
-      httpClient: MockClient((request) async {
-        requests.add(request);
-        return http.Response(
-          jsonEncode({
-            'payment_id': 'payment-new',
-            'purchase_id': 'purchase-new',
-          }),
-          200,
-          headers: {
-            'content-type': 'application/json; charset=utf-8',
-          },
-        );
-      }),
-    );
+    final api = _checkoutApi(requests);
 
     await api.post(
       '/b2b/packages/checkout',
-      {
-        'product_id': 'product-25',
-      },
+      {'product_id': 'product-25'},
+    );
+
+    expect(requests, hasLength(1));
+    expect(
+      jsonDecode(requests.single.body),
+      {'product_id': 'product-25'},
+    );
+  });
+
+  test('package checkout replaces only the persisted pending payment id',
+      () async {
+    final requests = <http.Request>[];
+    final api = _checkoutApi(requests);
+    await api.savePendingPaymentId('payment-old');
+
+    await api.post(
+      '/b2b/packages/checkout',
+      {'product_id': 'product-25'},
     );
 
     expect(requests, hasLength(1));
@@ -83,6 +84,7 @@ void main() {
       {
         'product_id': 'product-25',
         'replace_pending': true,
+        'replace_pending_payment_id': 'payment-old',
       },
     );
   });
@@ -205,6 +207,24 @@ void main() {
       },
     );
   });
+}
+
+B2BApiClient _checkoutApi(List<http.Request> requests) {
+  return B2BApiClient(
+    httpClient: MockClient((request) async {
+      requests.add(request);
+      return http.Response(
+        jsonEncode({
+          'payment_id': 'payment-new',
+          'purchase_id': 'purchase-new',
+        }),
+        200,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+        },
+      );
+    }),
+  );
 }
 
 class _NoNetworkApiClient extends B2BApiClient {}

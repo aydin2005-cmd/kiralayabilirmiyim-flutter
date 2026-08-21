@@ -6,14 +6,19 @@ import '../services/b2b_helpers.dart';
 import '../widgets/flow_widgets.dart';
 
 class B2BReferralsScreen extends StatefulWidget {
-  const B2BReferralsScreen({super.key});
+  final B2BApiClient? apiClient;
+
+  const B2BReferralsScreen({
+    super.key,
+    this.apiClient,
+  });
 
   @override
   State<B2BReferralsScreen> createState() => _B2BReferralsScreenState();
 }
 
 class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
-  final B2BApiClient api = B2BApiClient();
+  late final B2BApiClient api;
   final phoneController = TextEditingController();
   final labelController = TextEditingController();
 
@@ -23,6 +28,7 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
   @override
   void initState() {
     super.initState();
+    api = widget.apiClient ?? B2BApiClient();
     load();
   }
 

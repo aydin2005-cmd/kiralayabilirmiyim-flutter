@@ -39,6 +39,9 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
     );
   }
 
+  String _httpsReferralLink(String token) =>
+      'https://kiralayabilirmiyim.com/basvuru/$token';
+
   Future<void> load() async {
     setState(() => loading = true);
     try {
@@ -82,11 +85,12 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
       if (token != null && token.isNotEmpty) {
         await Clipboard.setData(
           ClipboardData(
-            text: 'kiralayabilirmiyim://b2b-referral?token=$token',
+            text: _httpsReferralLink(token),
           ),
         );
         message(
-            'Davet oluşturuldu; uygulama test bağlantısı panoya kopyalandı.');
+          'Davet oluşturuldu; davet bağlantısı panoya kopyalandı.',
+        );
       }
 
       await load();
@@ -117,19 +121,18 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
     }
   }
 
-  Future<void> copyLink(Map<String, dynamic> item,
-      {required bool https}) async {
+  Future<void> copyLink(Map<String, dynamic> item) async {
     final token = item['token']?.toString();
     if (token == null || token.isEmpty) {
       message('Davet tokenı bulunamadı.');
       return;
     }
 
-    final value = https
-        ? 'https://kiralayabilirmiyim.com/basvuru/$token'
-        : 'kiralayabilirmiyim://b2b-referral?token=$token';
-
-    await Clipboard.setData(ClipboardData(text: value));
+    await Clipboard.setData(
+      ClipboardData(
+        text: _httpsReferralLink(token),
+      ),
+    );
     message('Davet bağlantısı panoya kopyalandı.');
   }
 
@@ -164,14 +167,9 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
               runSpacing: 8,
               children: [
                 ActionChip(
-                  avatar: const Icon(Icons.copy_rounded, size: 18),
-                  label: const Text('Uygulama Linkini Kopyala'),
-                  onPressed: () => copyLink(item, https: false),
-                ),
-                ActionChip(
-                  avatar: const Icon(Icons.language_rounded, size: 18),
-                  label: const Text('Web Linkini Kopyala'),
-                  onPressed: () => copyLink(item, https: true),
+                  avatar: const Icon(Icons.link_rounded, size: 18),
+                  label: const Text('Davet Linkini Kopyala'),
+                  onPressed: () => copyLink(item),
                 ),
                 if (linkId.isNotEmpty && status != 'revoked')
                   ActionChip(
@@ -206,9 +204,12 @@ class _B2BReferralsScreenState extends State<B2BReferralsScreen> {
               FlowTextField(
                 controller: phoneController,
                 label: 'Aday cep telefonu',
+                helper: 'Başında 0 olmadan 5XXXXXXXXX formatında giriniz.',
+                prefixText: '+90 ',
                 keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                maxLength: 10,
+                inputFormatters: const [
+                  TurkeyMobileFieldFormatter(),
                 ],
               ),
               const SizedBox(height: 12),

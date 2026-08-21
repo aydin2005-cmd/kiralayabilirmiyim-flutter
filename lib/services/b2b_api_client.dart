@@ -126,10 +126,20 @@ class B2BApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
+    final requestBody = Map<String, dynamic>.from(body);
+
+    // A deliberate package purchase tap must start a fresh PayTR checkout
+    // rather than silently reopening an abandoned pending iframe. Automatic
+    // payment recovery uses GET and therefore never triggers this policy.
+    if (path == '/b2b/packages/checkout' &&
+        !requestBody.containsKey('replace_pending')) {
+      requestBody['replace_pending'] = true;
+    }
+
     final response = await _httpClient.post(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
-      body: jsonEncode(body),
+      body: jsonEncode(requestBody),
     );
     return _decodeMap(response);
   }

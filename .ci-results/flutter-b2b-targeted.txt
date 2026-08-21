@@ -1,110 +1,57 @@
-sha=f8d6013b7cc86d2b1f4d13c0fa45411900237cce
+sha=7b9f35d0d03b7a196998ac3506ff580c85643250
 flutter_setup=success
 pub_get=success
-targeted_tests=failure
+targeted_tests=success
 analyze=success
 suite=b2b_registration,b2b_multi_org_login,b2b_packages_payment_return,b2b_consolidated_hardening
 --- targeted_diagnostic_tail ---
 
 ::group::✅ Passing tests
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_multi_org_login_test.dart: multi-org login selects organization before OTP challenge
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: entry screen shows registration CTA and opens form
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_multi_org_login_test.dart: multi-org login selects organization before OTP challenge
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: empty required fields block registration request
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending payment storage survives client recreation and clears on logout
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: invalid tax length blocks registration request
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: invalid email blocks registration request
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending payment storage survives client recreation and clears on logout
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: invalid mobile blocks registration request
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: checkout stores payment id and opens checkout URL
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: app resume with no payment id does not check backend
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: persisted payment restores after process restart and checks backend
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: terminal restored payment clears recovery state
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: registration sends normalized phone and only business keys
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: supported pasted Turkish phone forms are reduced to field digits
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: self-service registration request is public and omits bearer token
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: checkout stores payment id and opens checkout URL
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: app resume with no payment id does not check backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: registration is blocked until privacy and terms are accepted
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: persisted payment restores after process restart and checks backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: terminal restored payment clears recovery state
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: app resume with pending payment checks backend
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: browser return alone never shows success before backend response
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: multiple resume signals do not start duplicate check loops
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: duplicate submit triggers only one registration request
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending response does not show success UI
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: registration is blocked until privacy and terms are accepted
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: pending retries until active status shows success
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: paid awaiting activation is not final success
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: paid awaiting activation retries until active status
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: generalized duplicate conflict keeps form and blocks activation
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: failed status shows friendly message
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: cancelled status shows friendly message
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: refunded status shows friendly message
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: duplicate submit triggers only one registration request
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: manual status button still checks backend
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: unexpected error shows safe fallback message
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: manual status during auto-check does not duplicate request
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: dispose during delayed retry does not update disposed widget
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_packages_payment_return_test.dart: portal keeps return-refresh hook for package screen
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: generalized duplicate conflict keeps form and blocks activation
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: unexpected error shows safe fallback message
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: 429 keeps form values and shows retry hint
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: malformed success phone does not navigate to activation
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: successful registration navigates to editable activation phone
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: legacy persisted B2B token is ignored after process restart policy
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: B2B token is runtime-only and legacy secure-storage token is removed
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: first package checkout does not request replacement without pending id
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: package checkout replaces only the persisted pending payment id
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: 429 keeps form values and shows retry hint
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: malformed success phone does not navigate to activation
-✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_registration_test.dart: successful registration navigates to editable activation phone
-::endgroup::
-::group::❌ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: login exposes forgot-password flow with fixed Turkey phone field (failed)
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following TestFailure was thrown running a test:
-Expected: exactly one matching candidate
-  Actual: _TypeWidgetFinder:<Found 0 widgets with type "B2BPasswordResetScreen": []>
-   Which: means none were found but one was expected
-
-When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:119:5)
-<asynchronous suspension>
-#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-<asynchronous suspension>
-(elided one frame from package:stack_trace)
-
-This was caught by the test expectation on the following line:
-  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 119
-The test description was:
-  login exposes forgot-password flow with fixed Turkey phone field
-════════════════════════════════════════════════════════════════════════════════════════════════════
-Test failed. See exception logs above.
-The test description was: login exposes forgot-password flow with fixed Turkey phone field
-
-::endgroup::
-::group::❌ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: applicant referral screen states that organization sends link (failed)
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following TestFailure was thrown running a test:
-Expected: exactly one matching candidate
-  Actual: _TextContainingWidgetFinder:<Found 0 widgets with text containing Bu davet linki sistem
-tarafından gönderilmez.: []>
-   Which: means none were found but one was expected
-
-When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart:134:5)
-<asynchronous suspension>
-#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-<asynchronous suspension>
-(elided one frame from package:stack_trace)
-
-This was caught by the test expectation on the following line:
-  file:///home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart line 134
-The test description was:
-  applicant referral screen states that organization sends link
-════════════════════════════════════════════════════════════════════════════════════════════════════
-Test failed. See exception logs above.
-The test description was: applicant referral screen states that organization sends link
-
-::endgroup::
-::group::✅ Passing tests
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: login exposes forgot-password flow with fixed Turkey phone field
+✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: applicant referral screen states that organization sends link
 ✅ /home/runner/work/kiralayabilirmiyim-flutter/kiralayabilirmiyim-flutter/test/b2b_consolidated_hardening_test.dart: password reset endpoints are public and carry expected payloads
 ::endgroup::
 
-::error::40 tests passed, 2 failed.
+🎉 42 tests passed.
 --- analyze_diagnostic_tail ---
 Analyzing kiralayabilirmiyim-flutter...                         
 
@@ -167,4 +114,4 @@ warning • Returning a 'Future' without 'await' inside a try block. Try adding 
    info • 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre. Try replacing the use of the deprecated member with the replacement • lib/theme/app_theme.dart:16:9 • deprecated_member_use
    info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement • lib/widgets/flow_widgets.dart:78:26 • deprecated_member_use
 
-58 issues found. (ran in 8.3s)
+58 issues found. (ran in 5.5s)

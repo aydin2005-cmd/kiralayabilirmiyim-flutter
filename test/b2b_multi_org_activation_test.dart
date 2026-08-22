@@ -357,6 +357,7 @@ void main() {
         tester,
         () => find.byType(B2BLoginScreen).evaluate().isNotEmpty,
       );
+      await tester.pumpAndSettle();
 
       expect(
         find.byType(B2BLoginScreen),

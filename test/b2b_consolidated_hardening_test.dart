@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:kiralayabilir_miyim/screens/b2b_login_screen.dart';
+import 'package:kiralayabilir_miyim/screens/b2b_members_screen.dart';
 import 'package:kiralayabilir_miyim/screens/b2b_password_reset_screen.dart';
 import 'package:kiralayabilir_miyim/screens/b2b_referrals_screen.dart';
 import 'package:kiralayabilir_miyim/services/b2b_api_client.dart';
@@ -133,6 +134,32 @@ void main() {
     expect(resetPhoneField.controller?.text, '5551112233');
     expect(resetPhoneField.maxLength, 10);
     expect(resetPhoneField.decoration?.prefixText, '+90 ');
+  });
+
+  testWidgets('new B2B member invite defaults to viewer role', (tester) async {
+    final api = _MembersApiClient();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: B2BMembersScreen(apiClient: api),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final roleDropdown = tester.widget<DropdownButtonFormField<String>>(
+      find.byType(DropdownButtonFormField<String>),
+    );
+    expect(roleDropdown.initialValue, 'viewer');
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Yeni yetkili cep telefonu'),
+      '5551112233',
+    );
+    await tester.tap(find.text('Yetkili Davet Et'));
+    await tester.pumpAndSettle();
+
+    expect(api.inviteBodies, hasLength(1));
+    expect(api.inviteBodies.single['role'], 'viewer');
   });
 
   testWidgets('applicant referral screen states that organization sends link',
@@ -292,6 +319,32 @@ B2BApiClient _checkoutApi(List<http.Request> requests) {
 }
 
 class _NoNetworkApiClient extends B2BApiClient {}
+
+class _MembersApiClient extends B2BApiClient {
+  final inviteBodies = <Map<String, dynamic>>[];
+
+  @override
+  Future<List<Map<String, dynamic>>> getList(String path) async {
+    expect(path, '/b2b/members');
+    return const <Map<String, dynamic>>[];
+  }
+
+  @override
+  Future<Map<String, dynamic>> post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    expect(path, '/b2b/members/invite');
+    inviteBodies.add(Map<String, dynamic>.from(body));
+    return {
+      'member_id': 'member-viewer',
+      'organization_id': 'org-1',
+      'phone_e164': '+905551112233',
+      'role': body['role'],
+      'status': 'invited',
+    };
+  }
+}
 
 class _ReferralApiClient extends B2BApiClient {
   @override

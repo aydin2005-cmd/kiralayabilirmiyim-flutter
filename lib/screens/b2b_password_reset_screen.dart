@@ -31,10 +31,14 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
   String? challengeId;
   int codeLength = 6;
   bool loading = false;
+  bool phoneVerified = false;
   List<Map<String, dynamic>> organizationChoices = [];
+  Map<String, dynamic>? selectedOrganization;
 
-  bool get waitingForCode => challengeId != null;
-  bool get selectingOrganization => organizationChoices.isNotEmpty;
+  bool get waitingForCode => challengeId != null && !phoneVerified;
+  bool get selectingOrganization =>
+      phoneVerified && organizationChoices.length > 1 && selectedOrganization == null;
+  bool get readyForPassword => phoneVerified && selectedOrganization != null;
 
   @override
   void initState() {
@@ -124,9 +128,13 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
       setState(() {
         challengeId = id;
         codeLength = resolvedCodeLength;
+        phoneVerified = false;
         organizationChoices = const <Map<String, dynamic>>[];
+        selectedOrganization = null;
         codeController.text =
             testCode == null || testCode.isEmpty ? '' : testCode;
+        passwordController.clear();
+        passwordAgainController.clear();
       });
 
       _message(
@@ -141,16 +149,8 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
     }
   }
 
-  Future<void> verifyReset({
-    String? organizationId,
-  }) async {
+  Future<void> verifyPhone() async {
     if (loading) {
-      return;
-    }
-
-    if (selectingOrganization &&
-        (organizationId == null || organizationId.isEmpty)) {
-      _message('Şifresini yenilemek istediğiniz kurumu seçiniz.');
       return;
     }
 
@@ -163,6 +163,79 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
     final code = codeController.text.trim();
     if (code.length != codeLength) {
       _message('$codeLength haneli SMS kodunu giriniz.');
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      final response = await api.postPublic(
+        '/b2b/auth/password-reset/verify',
+        {
+          'challenge_id': id,
+          'code': code,
+        },
+      );
+
+      final choices = _organizationChoicesFrom(response);
+      if (choices.isEmpty) {
+        throw const B2BApiException(
+          'Kurumsal hesap bilgisi alınamadı.',
+        );
+      }
+
+      Map<String, dynamic>? selected;
+      if (choices.length == 1) {
+        selected = choices.first;
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        phoneVerified = true;
+        organizationChoices = choices;
+        selectedOrganization = selected;
+      });
+
+      if (selected == null) {
+        _message(
+          'Telefon doğrulandı. Şifresini yenilemek istediğiniz kurumu seçiniz.',
+        );
+      } else {
+        _message(
+          'Telefon doğrulandı. Yeni kurumsal şifrenizi belirleyebilirsiniz.',
+        );
+      }
+    } catch (e) {
+      _message(e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  void selectOrganization(Map<String, dynamic> organization) {
+    setState(() {
+      selectedOrganization = organization;
+      passwordController.clear();
+      passwordAgainController.clear();
+    });
+  }
+
+  Future<void> completeReset() async {
+    if (loading) {
+      return;
+    }
+
+    final id = challengeId;
+    final organizationId =
+        selectedOrganization?['organization_id']?.toString() ?? '';
+
+    if (id == null || organizationId.isEmpty) {
+      _message('Şifresini yenilemek istediğiniz kurumu seçiniz.');
       return;
     }
 
@@ -182,42 +255,14 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
     setState(() => loading = true);
 
     try {
-      final payload = <String, dynamic>{
-        'challenge_id': id,
-        'code': code,
-        'new_password': newPassword,
-      };
-
-      if (organizationId != null && organizationId.isNotEmpty) {
-        payload['organization_id'] = organizationId;
-      }
-
       final response = await api.postPublic(
-        '/b2b/auth/password-reset/verify',
-        payload,
+        '/b2b/auth/password-reset/complete',
+        {
+          'challenge_id': id,
+          'organization_id': organizationId,
+          'new_password': newPassword,
+        },
       );
-
-      if (response['selection_required'] == true) {
-        final choices = _organizationChoicesFrom(response);
-        if (choices.isEmpty) {
-          throw const B2BApiException(
-            'Kurum seçimi bilgisi alınamadı.',
-          );
-        }
-
-        if (!mounted) {
-          return;
-        }
-
-        setState(() {
-          organizationChoices = choices;
-        });
-
-        _message(
-          'Telefon doğrulandı. Şifresini yenilemek istediğiniz kurumu seçiniz.',
-        );
-        return;
-      }
 
       if (response['success'] != true) {
         throw const B2BApiException(
@@ -253,7 +298,9 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
   void resetPhoneStep() {
     setState(() {
       challengeId = null;
+      phoneVerified = false;
       organizationChoices = const <Map<String, dynamic>>[];
+      selectedOrganization = null;
       codeController.clear();
       passwordController.clear();
       passwordAgainController.clear();
@@ -262,22 +309,30 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedName =
+        selectedOrganization?['organization_name']?.toString() ?? '';
+    final selectedRole = selectedOrganization?['role']?.toString() ?? '';
+
     return FlowScaffold(
       title: 'Şifremi Unuttum',
       bottom: PrimaryButton(
-        text: selectingOrganization
-            ? 'Kurum Seçiniz'
+        text: challengeId == null
+            ? 'SMS Kodu Gönder'
             : waitingForCode
-                ? 'Şifreyi Yenile'
-                : 'SMS Kodu Gönder',
+                ? 'Telefonu Doğrula'
+                : selectingOrganization
+                    ? 'Kurum Seçiniz'
+                    : 'Şifreyi Yenile',
         loading: loading,
-        onPressed: selectingOrganization
-            ? () => _message(
-                  'Şifresini yenilemek istediğiniz kurumu seçiniz.',
-                )
+        onPressed: challengeId == null
+            ? startReset
             : waitingForCode
-                ? verifyReset
-                : startReset,
+                ? verifyPhone
+                : selectingOrganization
+                    ? () => _message(
+                          'Şifresini yenilemek istediğiniz kurumu seçiniz.',
+                        )
+                    : completeReset,
       ),
       children: [
         const FlowHeader(
@@ -285,7 +340,7 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
           eyebrow: 'Kurumsal Hesap',
           title: 'Kurumsal şifrenizi yenileyin',
           subtitle:
-              'Telefon doğrulamasından sonra yeni şifrenizi belirleyebilirsiniz. Aynı telefon birden fazla kurumda kayıtlıysa hangi kurumun şifresini yenilemek istediğinizi seçersiniz.',
+              'Önce telefonunuzu doğrulayın. Aynı telefon birden fazla kurumda kayıtlıysa hangi kurumun şifresini yenilemek istediğinizi seçin. Yalnızca seçtiğiniz kurumun şifresi değişir.',
         ),
         const SizedBox(height: 18),
         PremiumCard(
@@ -298,54 +353,43 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
                 prefixText: '+90 ',
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
-                enabled: !waitingForCode && !loading,
+                enabled: challengeId == null && !loading,
                 inputFormatters: const [
                   TurkeyMobileFieldFormatter(),
                 ],
               ),
-              if (waitingForCode) ...[
+              if (challengeId != null) ...[
                 const SizedBox(height: 14),
                 FlowTextField(
                   controller: codeController,
                   label: 'SMS doğrulama kodu',
                   keyboardType: TextInputType.number,
                   maxLength: codeLength,
-                  enabled: !selectingOrganization && !loading,
+                  enabled: !phoneVerified && !loading,
                   autofillHints: const [AutofillHints.oneTimeCode],
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
-                ),
-                const SizedBox(height: 14),
-                FlowTextField(
-                  controller: passwordController,
-                  label: 'Yeni kurumsal şifre',
-                  obscureText: true,
-                  enabled: !selectingOrganization && !loading,
-                  autofillHints: const [AutofillHints.newPassword],
-                ),
-                const SizedBox(height: 14),
-                FlowTextField(
-                  controller: passwordAgainController,
-                  label: 'Yeni kurumsal şifre tekrar',
-                  obscureText: true,
-                  enabled: !selectingOrganization && !loading,
                   textInputAction: TextInputAction.done,
-                  onSubmitted: (_) => verifyReset(),
+                  onSubmitted: (_) {
+                    if (!phoneVerified) {
+                      verifyPhone();
+                    }
+                  },
                 ),
-                if (selectingOrganization) ...[
+                if (phoneVerified) ...[
                   const SizedBox(height: 18),
                   const TrustNotice(
-                    icon: Icons.business_outlined,
+                    icon: Icons.verified_user_outlined,
                     text:
-                        'Telefon numaranız birden fazla kurumsal hesapta kayıtlı. Yalnızca seçtiğiniz kurumun şifresi değiştirilecektir.',
+                        'Telefon doğrulandı. Kurumlara ait şifreler birbirinden bağımsızdır; yalnızca seçtiğiniz kurumsal hesabın şifresi yenilenecektir.',
                     background: FlowColors.tealSoft,
                     borderColor: FlowColors.teal,
                   ),
-                  const SizedBox(height: 12),
+                ],
+                if (selectingOrganization) ...[
+                  const SizedBox(height: 14),
                   ...organizationChoices.map((organization) {
-                    final organizationId =
-                        organization['organization_id']?.toString() ?? '';
                     final organizationName =
                         organization['organization_name']?.toString() ?? '-';
                     final role = organization['role']?.toString() ?? '';
@@ -355,11 +399,9 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
                       child: SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: loading || organizationId.isEmpty
+                          onPressed: loading
                               ? null
-                              : () => verifyReset(
-                                    organizationId: organizationId,
-                                  ),
+                              : () => selectOrganization(organization),
                           icon: const Icon(Icons.business_rounded),
                           label: Text(
                             '$organizationName · ${b2bRoleLabel(role)}',
@@ -368,6 +410,52 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
                       ),
                     );
                   }),
+                ],
+                if (readyForPassword) ...[
+                  const SizedBox(height: 14),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '$selectedName · ${b2bRoleLabel(selectedRole)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: FlowColors.navyDark,
+                      ),
+                    ),
+                  ),
+                  if (organizationChoices.length > 1)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: loading
+                            ? null
+                            : () {
+                                setState(() {
+                                  selectedOrganization = null;
+                                  passwordController.clear();
+                                  passwordAgainController.clear();
+                                });
+                              },
+                        child: const Text('Başka kurum seç'),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  FlowTextField(
+                    controller: passwordController,
+                    label: 'Yeni kurumsal şifre',
+                    obscureText: true,
+                    enabled: !loading,
+                    autofillHints: const [AutofillHints.newPassword],
+                  ),
+                  const SizedBox(height: 14),
+                  FlowTextField(
+                    controller: passwordAgainController,
+                    label: 'Yeni kurumsal şifre tekrar',
+                    obscureText: true,
+                    enabled: !loading,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => completeReset(),
+                  ),
                 ],
                 const SizedBox(height: 10),
                 Align(

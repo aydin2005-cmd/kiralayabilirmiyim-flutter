@@ -383,7 +383,7 @@ class _B2BPasswordResetScreenState extends State<B2BPasswordResetScreen> {
                     icon: Icons.verified_user_outlined,
                     text:
                         'Telefon doğrulandı. Kurumlara ait şifreler birbirinden bağımsızdır; yalnızca seçtiğiniz kurumsal hesabın şifresi yenilenecektir.',
-                    background: FlowColors.tealSoft,
+                    background: FlowColors.softGreen,
                     borderColor: FlowColors.teal,
                   ),
                 ],

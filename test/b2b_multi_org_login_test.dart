@@ -54,6 +54,80 @@ void main() {
   });
 
   testWidgets(
+    'single-org login replaces credentials with focused OTP step',
+    (tester) async {
+      var startRequests = 0;
+
+      final httpClient = MockClient((request) async {
+        expect(request.url.path, '/b2b/auth/login/start');
+        startRequests += 1;
+
+        return http.Response(
+          jsonEncode({
+            'success': true,
+            'selection_required': false,
+            'challenge_id': 'challenge-single-org',
+            'code_length': 6,
+          }),
+          200,
+          headers: {
+            'content-type': 'application/json',
+          },
+        );
+      });
+
+      final api = B2BApiClient(httpClient: httpClient);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: B2BLoginScreen(
+            initialPhone: '5551112233',
+            apiClient: api,
+          ),
+        ),
+      );
+
+      expect(find.byType(EditableText), findsNWidgets(2));
+      expect(find.text('Kurumsal şifre'), findsOneWidget);
+
+      await tester.enterText(
+        find.byType(EditableText).at(1),
+        'sample-password-123',
+      );
+
+      await tester.tap(find.text('Giriş Kodu Gönder'));
+
+      await _pumpUntil(
+        tester,
+        () => startRequests == 1,
+      );
+      await tester.pump();
+
+      expect(
+        find.byKey(const ValueKey('b2b-login-otp-field')),
+        findsOneWidget,
+      );
+      expect(find.text('SMS doğrulama kodu'), findsOneWidget);
+      expect(find.text('Kurumsal şifre'), findsNothing);
+      expect(find.text('Yetkili cep telefonu'), findsNothing);
+      expect(find.text('Telefon/şifreyi değiştir'), findsOneWidget);
+      expect(find.byType(EditableText), findsOneWidget);
+
+      final otpEditable = tester.widget<EditableText>(
+        find.byType(EditableText),
+      );
+      expect(otpEditable.focusNode.hasFocus, isTrue);
+
+      await tester.tap(find.text('Telefon/şifreyi değiştir'));
+      await tester.pump();
+
+      expect(find.text('Kurumsal şifre'), findsOneWidget);
+      expect(find.text('Yetkili cep telefonu'), findsOneWidget);
+      expect(find.text('SMS doğrulama kodu'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'multi-org login selects organization before OTP challenge',
     (tester) async {
       final requestBodies = <Map<String, dynamic>>[];
@@ -137,7 +211,7 @@ void main() {
 
       await tester.tap(
         find.text(
-          'Giri\u015f Kodu G\u00f6nder',
+          'Giriş Kodu Gönder',
         ),
       );
 
@@ -221,11 +295,13 @@ void main() {
       );
 
       expect(
-        find.text(
-          'SMS do\u011frulama kodu',
-        ),
+        find.text('SMS doğrulama kodu'),
         findsOneWidget,
       );
+      expect(find.text('Kurumsal şifre'), findsNothing);
+      expect(find.text('Yetkili cep telefonu'), findsNothing);
+      expect(find.text('Telefon/şifreyi değiştir'), findsOneWidget);
+      expect(find.byType(EditableText), findsOneWidget);
     },
   );
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../services/b2b_api_client.dart';
 import '../services/b2b_helpers.dart';
@@ -23,7 +22,7 @@ class _B2BMembersScreenState extends State<B2BMembersScreen> {
   late final B2BApiClient api;
   final phoneController = TextEditingController();
 
-  String inviteRole = 'operator';
+  String inviteRole = 'viewer';
   List<Map<String, dynamic>> members = [];
   bool loading = true;
 
@@ -252,9 +251,12 @@ class _B2BMembersScreenState extends State<B2BMembersScreen> {
               FlowTextField(
                 controller: phoneController,
                 label: 'Yeni yetkili cep telefonu',
+                helper: 'Başında 0 olmadan 5XXXXXXXXX formatında giriniz.',
+                prefixText: '+90 ',
                 keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
+                maxLength: 10,
+                inputFormatters: const [
+                  TurkeyMobileFieldFormatter(),
                 ],
               ),
               const SizedBox(height: 12),

@@ -37,7 +37,9 @@ void main() {
     expect(find.byType(B2BRegistrationScreen), findsOneWidget);
     expect(find.text('Şirket / Ticari Unvan'), findsOneWidget);
     expect(find.text('Vergi Numarası'), findsOneWidget);
+    expect(find.text('Vergi Dairesi'), findsOneWidget);
     expect(find.text('Fatura Adresi'), findsOneWidget);
+    expect(find.text('E-posta'), findsOneWidget);
     expect(find.text('Yetkili Cep Telefonu'), findsOneWidget);
     expect(
       find.text('KVKK Aydınlatma Metni’ni okudum ve kabul ediyorum.'),
@@ -79,6 +81,24 @@ void main() {
     );
   });
 
+  testWidgets('invalid email blocks registration request', (tester) async {
+    final api = _FakeRegistrationApiClient();
+
+    await tester.pumpWidget(_registrationApp(api));
+    await _enterRegistrationForm(
+      tester,
+      contactEmail: 'hatali-adres',
+    );
+    await tester.tap(_registrationButton());
+    await tester.pump();
+
+    expect(api.calls, 0);
+    expect(
+      find.text('Geçerli bir e-posta adresi giriniz.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('invalid mobile blocks registration request', (tester) async {
     final api = _FakeRegistrationApiClient();
 
@@ -109,12 +129,16 @@ void main() {
     expect(api.calls, 1);
     expect(api.legalNames, ['RiskMetriks AŞ']);
     expect(api.taxNumbers, ['1234567890']);
+    expect(api.taxOffices, ['Beykoz']);
     expect(api.billingAddresses, ['Test Mahallesi No: 1']);
+    expect(api.contactEmails, ['muhasebe@example.com']);
     expect(api.ownerPhones, ['+905551112233']);
     expect(api.sentPayloadKeys.single, [
       'legal_name',
       'tax_number',
+      'tax_office',
       'billing_address',
+      'contact_email',
       'owner_phone',
       'privacy_notice_acknowledged',
       'privacy_notice_version',
@@ -173,7 +197,9 @@ void main() {
     await api.registerSelfService(
       legalName: 'RiskMetriks AŞ',
       taxNumber: '1234567890',
+      taxOffice: 'Beykoz',
       billingAddress: 'Test Mahallesi No: 1',
+      contactEmail: 'muhasebe@example.com',
       ownerPhone: '+905551112233',
       privacyNoticeAcknowledged: true,
       privacyNoticeVersion: B2BApiClient.b2bPrivacyNoticeVersion,
@@ -187,7 +213,9 @@ void main() {
     expect(jsonDecode(requests.single.body), {
       'legal_name': 'RiskMetriks AŞ',
       'tax_number': '1234567890',
+      'tax_office': 'Beykoz',
       'billing_address': 'Test Mahallesi No: 1',
+      'contact_email': 'muhasebe@example.com',
       'owner_phone': '+905551112233',
       'privacy_notice_acknowledged': true,
       'privacy_notice_version': B2BApiClient.b2bPrivacyNoticeVersion,
@@ -274,7 +302,9 @@ void main() {
     expect(find.byType(B2BActivationScreen), findsNothing);
     expect(find.text('RiskMetriks AŞ'), findsOneWidget);
     expect(find.text('1234567890'), findsOneWidget);
+    expect(find.text('Beykoz'), findsOneWidget);
     expect(find.text('Test Mahallesi No: 1'), findsOneWidget);
+    expect(find.text('muhasebe@example.com'), findsOneWidget);
     expect(find.text('5551112233'), findsOneWidget);
     expect(find.textContaining('vergi numarası ile kayıtlı'), findsNothing);
     expect(find.textContaining('telefon numarası başka'), findsNothing);
@@ -331,7 +361,9 @@ void main() {
     );
     expect(find.text('RiskMetriks AŞ'), findsOneWidget);
     expect(find.text('1234567890'), findsOneWidget);
+    expect(find.text('Beykoz'), findsOneWidget);
     expect(find.text('Test Mahallesi No: 1'), findsOneWidget);
+    expect(find.text('muhasebe@example.com'), findsOneWidget);
     expect(find.text('5551112233'), findsOneWidget);
   });
 
@@ -393,7 +425,9 @@ Future<void> _enterRegistrationForm(
   WidgetTester tester, {
   String legalName = 'RiskMetriks AŞ',
   String taxNumber = '1234567890',
+  String taxOffice = 'Beykoz',
   String billingAddress = 'Test Mahallesi No: 1',
+  String contactEmail = 'muhasebe@example.com',
   String ownerPhone = '5551112233',
   bool acceptLegal = true,
 }) async {
@@ -406,8 +440,16 @@ Future<void> _enterRegistrationForm(
     taxNumber,
   );
   await tester.enterText(
+    find.widgetWithText(TextField, 'Vergi Dairesi'),
+    taxOffice,
+  );
+  await tester.enterText(
     find.widgetWithText(TextField, 'Fatura Adresi'),
     billingAddress,
+  );
+  await tester.enterText(
+    find.widgetWithText(TextField, 'E-posta'),
+    contactEmail,
   );
   await tester.enterText(
     find.widgetWithText(TextField, 'Yetkili Cep Telefonu'),
@@ -460,7 +502,9 @@ class _FakeRegistrationApiClient extends B2BApiClient {
   int calls = 0;
   final legalNames = <String>[];
   final taxNumbers = <String>[];
+  final taxOffices = <String>[];
   final billingAddresses = <String>[];
+  final contactEmails = <String>[];
   final ownerPhones = <String>[];
   final privacyNoticeAcknowledged = <bool>[];
   final privacyNoticeVersions = <String>[];
@@ -478,7 +522,9 @@ class _FakeRegistrationApiClient extends B2BApiClient {
   Future<Map<String, dynamic>> registerSelfService({
     required String legalName,
     required String taxNumber,
+    required String taxOffice,
     required String billingAddress,
+    required String contactEmail,
     required String ownerPhone,
     required bool privacyNoticeAcknowledged,
     required String privacyNoticeVersion,
@@ -488,7 +534,9 @@ class _FakeRegistrationApiClient extends B2BApiClient {
     calls += 1;
     legalNames.add(legalName);
     taxNumbers.add(taxNumber);
+    taxOffices.add(taxOffice);
     billingAddresses.add(billingAddress);
+    contactEmails.add(contactEmail);
     ownerPhones.add(ownerPhone);
     this.privacyNoticeAcknowledged.add(
           privacyNoticeAcknowledged,
@@ -499,7 +547,9 @@ class _FakeRegistrationApiClient extends B2BApiClient {
     sentPayloadKeys.add([
       'legal_name',
       'tax_number',
+      'tax_office',
       'billing_address',
+      'contact_email',
       'owner_phone',
       'privacy_notice_acknowledged',
       'privacy_notice_version',

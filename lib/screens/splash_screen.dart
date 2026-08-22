@@ -4,6 +4,7 @@ import '../widgets/flow_widgets.dart';
 import '../services/legal_links.dart';
 import 'login_screen.dart';
 import 'b2b_entry_screen.dart';
+import 'data_erasure_request_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -126,6 +127,32 @@ class SplashScreen extends StatelessWidget {
               ),
               label: const Text(
                 'Kurumsal Giriş',
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextButton.icon(
+            key: const ValueKey(
+              'data-erasure-request-entry',
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    const DataErasureRequestScreen(),
+              ),
+            ),
+            icon: const Icon(
+              Icons.privacy_tip_outlined,
+              size: 18,
+            ),
+            label: const Text(
+              'Veri Silme Talebi',
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: FlowColors.muted,
+              textStyle: const TextStyle(
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),

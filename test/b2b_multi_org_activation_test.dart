@@ -51,10 +51,11 @@ void main() {
   });
 
   testWidgets(
-    'multi-org activation reveals organizations only after OTP verification',
+    'multi-org activation and first login transition to OTP',
     (tester) async {
       final startBodies = <Map<String, dynamic>>[];
       final verifyBodies = <Map<String, dynamic>>[];
+      final loginStartBodies = <Map<String, dynamic>>[];
 
       final httpClient = MockClient((request) async {
         final body = jsonDecode(request.body) as Map<String, dynamic>;
@@ -126,6 +127,23 @@ void main() {
           );
         }
 
+        if (request.url.path == '/b2b/auth/login/start') {
+          loginStartBodies.add(body);
+
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'selection_required': false,
+              'challenge_id': 'login-challenge-1',
+              'code_length': 6,
+            }),
+            200,
+            headers: {
+              'content-type': 'application/json',
+            },
+          );
+        }
+
         fail(
           'Unexpected request path: ${request.url.path}',
         );
@@ -165,7 +183,7 @@ void main() {
 
       await tester.tap(
         find.text(
-          'Aktivasyon Kodu G\u00f6nder',
+          'Aktivasyon Kodu Gönder',
         ),
       );
 
@@ -339,11 +357,46 @@ void main() {
         tester,
         () => find.byType(B2BLoginScreen).evaluate().isNotEmpty,
       );
+      await tester.pumpAndSettle();
 
       expect(
         find.byType(B2BLoginScreen),
         findsOneWidget,
       );
+      expect(find.text('Yetkili cep telefonu'), findsOneWidget);
+      expect(find.text('Kurumsal şifre'), findsOneWidget);
+      expect(find.byType(EditableText), findsNWidgets(2));
+
+      // REGRESSION: immediately after activation, the first login must move
+      // from credentials to a dedicated OTP-only step instead of leaving the
+      // password field active on screen.
+      await tester.enterText(
+        find.byType(EditableText).at(1),
+        'sample-password-123',
+      );
+      await tester.tap(find.text('Giriş Kodu Gönder'));
+
+      await _pumpUntil(
+        tester,
+        () => loginStartBodies.isNotEmpty,
+      );
+      await _pumpUntil(
+        tester,
+        () => find
+            .byKey(const ValueKey('b2b-login-otp-field'))
+            .evaluate()
+            .isNotEmpty,
+      );
+
+      expect(loginStartBodies, hasLength(1));
+      expect(
+        find.byKey(const ValueKey('b2b-login-otp-field')),
+        findsOneWidget,
+      );
+      expect(find.text('SMS doğrulama kodu'), findsOneWidget);
+      expect(find.text('Yetkili cep telefonu'), findsNothing);
+      expect(find.text('Kurumsal şifre'), findsNothing);
+      expect(find.byType(EditableText), findsOneWidget);
     },
   );
 }

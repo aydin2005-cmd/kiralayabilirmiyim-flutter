@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -16,6 +16,11 @@ class B2BApiClient {
   static const _tokenKey = 'b2b_access_token';
   static const _pendingPaymentKey = 'b2b_pending_payment_id';
 
+  // A B2B login is intentionally process-scoped. Server-side session TTL and
+  // revocation remain authoritative, but an app process restart must require a
+  // fresh corporate login/OTP instead of silently restoring a bearer token.
+  static String? _runtimeToken;
+
   final http.Client _httpClient;
 
   B2BApiClient({
@@ -23,20 +28,20 @@ class B2BApiClient {
   }) : _httpClient = httpClient ?? http.Client();
 
   Future<void> saveToken(String token) async {
+    final normalized = token.trim();
+    _runtimeToken = normalized.isEmpty ? null : normalized;
+
+    // Remove tokens persisted by older app versions. Failure is best-effort;
+    // the current process never reads the legacy secure-storage token.
     try {
-      await _storage.write(key: _tokenKey, value: token);
-    } on PlatformException {
-      await clearToken();
-      await _storage.write(key: _tokenKey, value: token);
+      await _storage.delete(key: _tokenKey);
+    } catch (_) {
+      // Runtime-only B2B authentication remains effective for this process.
     }
   }
 
   Future<String?> getToken() async {
-    try {
-      return await _storage.read(key: _tokenKey);
-    } on PlatformException {
-      return null;
-    }
+    return _runtimeToken;
   }
 
   Future<void> savePendingPaymentId(
@@ -89,6 +94,8 @@ class B2BApiClient {
   }
 
   Future<void> clearToken() async {
+    _runtimeToken = null;
+
     try {
       await _storage.delete(key: _tokenKey);
     } catch (_) {
@@ -120,10 +127,25 @@ class B2BApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
+    final requestBody = Map<String, dynamic>.from(body);
+
+    // A deliberate package purchase tap supersedes only the exact pending
+    // payment this app previously adopted. With no persisted pending payment,
+    // normal backend checkout/reuse behavior remains unchanged.
+    if (path == '/b2b/packages/checkout' &&
+        !requestBody.containsKey('replace_pending')) {
+      final pendingPaymentId = await readPendingPaymentId();
+
+      if (pendingPaymentId != null && pendingPaymentId.isNotEmpty) {
+        requestBody['replace_pending'] = true;
+        requestBody['replace_pending_payment_id'] = pendingPaymentId;
+      }
+    }
+
     final response = await _httpClient.post(
       Uri.parse('$baseUrl$path'),
       headers: await _headers(),
-      body: jsonEncode(body),
+      body: jsonEncode(requestBody),
     );
     return _decodeMap(response);
   }
@@ -143,7 +165,9 @@ class B2BApiClient {
   Future<Map<String, dynamic>> registerSelfService({
     required String legalName,
     required String taxNumber,
+    required String taxOffice,
     required String billingAddress,
+    required String contactEmail,
     required String ownerPhone,
     required bool privacyNoticeAcknowledged,
     required String privacyNoticeVersion,
@@ -155,7 +179,9 @@ class B2BApiClient {
       {
         'legal_name': legalName,
         'tax_number': taxNumber,
+        'tax_office': taxOffice,
         'billing_address': billingAddress,
+        'contact_email': contactEmail,
         'owner_phone': ownerPhone,
         'privacy_notice_acknowledged': privacyNoticeAcknowledged,
         'privacy_notice_version': privacyNoticeVersion,

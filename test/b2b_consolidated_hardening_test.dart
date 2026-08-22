@@ -116,9 +116,6 @@ void main() {
     expect(phoneField.maxLength, 10);
     expect(phoneField.decoration?.prefixText, '+90 ');
 
-    // The login callback stops the native SMS retriever before navigation.
-    // That platform lifecycle is outside a pure widget test, so validate the
-    // reset screen itself independently here.
     await tester.pumpWidget(
       MaterialApp(
         home: B2BPasswordResetScreen(
@@ -176,7 +173,7 @@ void main() {
     expect(find.text('Web Linkini Kopyala'), findsNothing);
   });
 
-  test('password reset endpoints are public and carry expected payloads',
+  test('password reset endpoints are public and use OTP-first scoped payloads',
       () async {
     final requests = <http.Request>[];
     final api = B2BApiClient(
@@ -197,8 +194,31 @@ void main() {
           );
         }
 
+        if (request.url.path.endsWith('/verify')) {
+          return http.Response(
+            jsonEncode({
+              'success': true,
+              'selection_required': false,
+              'organizations': [
+                {
+                  'organization_id': 'org-1',
+                  'organization_name': 'Test Kurumu',
+                  'role': 'owner',
+                },
+              ],
+              'organization_id': 'org-1',
+              'organization_name': 'Test Kurumu',
+            }),
+            200,
+          );
+        }
+
         return http.Response(
-          jsonEncode({'success': true}),
+          jsonEncode({
+            'success': true,
+            'organization_id': 'org-1',
+            'organization_name': 'Test Kurumu',
+          }),
           200,
         );
       }),
@@ -213,11 +233,18 @@ void main() {
       {
         'challenge_id': 'reset-challenge',
         'code': '123456',
+      },
+    );
+    await api.postPublic(
+      '/b2b/auth/password-reset/complete',
+      {
+        'challenge_id': 'reset-challenge',
+        'organization_id': 'org-1',
         'new_password': 'NewPassword!2',
       },
     );
 
-    expect(requests, hasLength(2));
+    expect(requests, hasLength(3));
     expect(
       requests.every(
         (request) => !request.headers.containsKey('Authorization'),
@@ -225,14 +252,21 @@ void main() {
       isTrue,
     );
     expect(
-      jsonDecode(requests.first.body),
+      jsonDecode(requests[0].body),
       {'phone_number': '+905551112233'},
     );
     expect(
-      jsonDecode(requests.last.body),
+      jsonDecode(requests[1].body),
       {
         'challenge_id': 'reset-challenge',
         'code': '123456',
+      },
+    );
+    expect(
+      jsonDecode(requests[2].body),
+      {
+        'challenge_id': 'reset-challenge',
+        'organization_id': 'org-1',
         'new_password': 'NewPassword!2',
       },
     );

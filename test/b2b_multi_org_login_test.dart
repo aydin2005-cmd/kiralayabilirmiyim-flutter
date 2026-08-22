@@ -118,7 +118,12 @@ void main() {
       );
       expect(otpEditable.focusNode.hasFocus, isTrue);
 
-      await tester.tap(find.text('Telefon/şifreyi değiştir'));
+      final changeCredentialsFinder = find.text('Telefon/şifreyi değiştir');
+      await tester.testTextInput.hide();
+      await tester.pump();
+      await tester.ensureVisible(changeCredentialsFinder);
+      await tester.pump();
+      await tester.tap(changeCredentialsFinder);
       await tester.pump();
 
       expect(find.text('Kurumsal şifre'), findsOneWidget);

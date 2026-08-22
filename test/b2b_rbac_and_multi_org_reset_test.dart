@@ -25,7 +25,7 @@ void main() {
   });
 
   testWidgets(
-      'multi-org password reset asks for organization and submits selected id',
+      'multi-org password reset verifies phone before selecting organization',
       (tester) async {
     final api = _MultiOrgResetApiClient();
 
@@ -46,6 +46,31 @@ void main() {
       find.widgetWithText(TextField, 'SMS doğrulama kodu'),
       '123456',
     );
+    expect(
+      find.widgetWithText(TextField, 'Yeni kurumsal şifre'),
+      findsNothing,
+    );
+
+    await tester.tap(find.text('Telefonu Doğrula'));
+    await tester.pumpAndSettle();
+
+    expect(api.verifyCalls, 1);
+    expect(find.textContaining('CAMEX'), findsOneWidget);
+    expect(find.textContaining('Bakırköy 221'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'yalnızca seçtiğiniz kurumsal hesabın şifresi yenilenecektir',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(TextField, 'Yeni kurumsal şifre'),
+      findsNothing,
+    );
+
+    await tester.tap(find.textContaining('CAMEX'));
+    await tester.pumpAndSettle();
+
     await tester.enterText(
       find.widgetWithText(TextField, 'Yeni kurumsal şifre'),
       'SelectedOrg!123',
@@ -58,21 +83,8 @@ void main() {
     await tester.tap(find.text('Şifreyi Yenile'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('CAMEX'), findsOneWidget);
-    expect(find.textContaining('Bakırköy 221'), findsOneWidget);
-    expect(
-      find.textContaining(
-        'Yalnızca seçtiğiniz kurumun şifresi değiştirilecektir.',
-      ),
-      findsOneWidget,
-    );
-    expect(api.selectedOrganizationId, isNull);
-
-    await tester.tap(find.textContaining('CAMEX'));
-    await tester.pumpAndSettle();
-
+    expect(api.completeCalls, 1);
     expect(api.selectedOrganizationId, 'camex-org');
-    expect(api.verifyCalls, 2);
   });
 }
 
@@ -102,6 +114,7 @@ class _OperatorPortalApiClient extends B2BApiClient {
 
 class _MultiOrgResetApiClient extends B2BApiClient {
   int verifyCalls = 0;
+  int completeCalls = 0;
   String? selectedOrganizationId;
 
   @override
@@ -122,31 +135,37 @@ class _MultiOrgResetApiClient extends B2BApiClient {
 
     if (path.endsWith('/verify')) {
       verifyCalls += 1;
-      selectedOrganizationId = body['organization_id']?.toString();
-
-      if (selectedOrganizationId == null) {
-        return {
-          'success': true,
-          'selection_required': true,
-          'organizations': [
-            {
-              'organization_id': 'camex-org',
-              'organization_name': 'CAMEX',
-              'role': 'owner',
-            },
-            {
-              'organization_id': 'bakirkoy-org',
-              'organization_name': 'Bakırköy 221',
-              'role': 'operator',
-            },
-          ],
-        };
-      }
+      expect(body, {
+        'challenge_id': 'reset-challenge',
+        'code': '123456',
+      });
 
       return {
         'success': true,
-        'selection_required': false,
-        'organizations': [],
+        'selection_required': true,
+        'organizations': [
+          {
+            'organization_id': 'camex-org',
+            'organization_name': 'CAMEX',
+            'role': 'owner',
+          },
+          {
+            'organization_id': 'bakirkoy-org',
+            'organization_name': 'Bakırköy 221',
+            'role': 'operator',
+          },
+        ],
+      };
+    }
+
+    if (path.endsWith('/complete')) {
+      completeCalls += 1;
+      selectedOrganizationId = body['organization_id']?.toString();
+      expect(body['challenge_id'], 'reset-challenge');
+      expect(body['new_password'], 'SelectedOrg!123');
+
+      return {
+        'success': true,
         'organization_id': selectedOrganizationId,
         'organization_name': 'CAMEX',
       };

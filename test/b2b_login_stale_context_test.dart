@@ -204,7 +204,7 @@ void main() {
       expect(find.text('Telefon/şifreyi değiştir'), findsOneWidget);
 
       final changeCredentialsFinder = find.text('Telefon/şifreyi değiştir');
-      await tester.testTextInput.hide();
+      tester.testTextInput.hide();
       await tester.pump();
       await tester.ensureVisible(changeCredentialsFinder);
       await tester.pump();

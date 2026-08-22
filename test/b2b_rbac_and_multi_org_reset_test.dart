@@ -20,8 +20,17 @@ void main() {
 
     expect(find.text('Paketler'), findsOneWidget);
     expect(find.text('Aday Davetleri'), findsOneWidget);
-    expect(find.text('Başvurular'), findsOneWidget);
     expect(find.text('Ekip Üyeleri'), findsNothing);
+
+    final applications = find.text('Başvurular');
+    await tester.scrollUntilVisible(
+      applications,
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(applications, findsOneWidget);
   });
 
   testWidgets(
@@ -68,11 +77,27 @@ void main() {
       findsNothing,
     );
 
-    await tester.tap(find.textContaining('CAMEX'));
+    final camex = find.textContaining('CAMEX');
+    await tester.scrollUntilVisible(
+      camex,
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(camex);
+    await tester.pumpAndSettle();
+
+    final newPassword =
+        find.widgetWithText(TextField, 'Yeni kurumsal şifre');
+    await tester.scrollUntilVisible(
+      newPassword,
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
 
     await tester.enterText(
-      find.widgetWithText(TextField, 'Yeni kurumsal şifre'),
+      newPassword,
       'SelectedOrg!123',
     );
     await tester.enterText(

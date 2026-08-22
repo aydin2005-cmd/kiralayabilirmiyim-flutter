@@ -22,7 +22,7 @@ class _B2BMembersScreenState extends State<B2BMembersScreen> {
   late final B2BApiClient api;
   final phoneController = TextEditingController();
 
-  String inviteRole = 'operator';
+  String inviteRole = 'viewer';
   List<Map<String, dynamic>> members = [];
   bool loading = true;
 

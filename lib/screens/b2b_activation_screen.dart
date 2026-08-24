@@ -290,7 +290,10 @@ class _B2BActivationScreenState extends State<B2BActivationScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => B2BLoginScreen(initialPhone: phone),
+          builder: (_) => B2BLoginScreen(
+            initialPhone: phone,
+            apiClient: api,
+          ),
         ),
       );
     } catch (e) {

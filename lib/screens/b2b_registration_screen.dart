@@ -23,7 +23,9 @@ class B2BRegistrationScreen extends StatefulWidget {
 class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
   final legalNameController = TextEditingController();
   final taxNumberController = TextEditingController();
+  final taxOfficeController = TextEditingController();
   final billingAddressController = TextEditingController();
+  final contactEmailController = TextEditingController();
   final ownerPhoneController = TextEditingController();
 
   late final B2BApiClient api;
@@ -41,7 +43,9 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
   void dispose() {
     legalNameController.dispose();
     taxNumberController.dispose();
+    taxOfficeController.dispose();
     billingAddressController.dispose();
+    contactEmailController.dispose();
     ownerPhoneController.dispose();
     super.dispose();
   }
@@ -56,6 +60,15 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
     final digits = value.trim();
     if (!RegExp(r'^\d{10}(\d)?$').hasMatch(digits)) {
       return 'Vergi numarası 10 veya 11 haneli olmalıdır.';
+    }
+    return null;
+  }
+
+  String? _validateEmail(String value) {
+    final email = value.trim();
+    if (email.isEmpty ||
+        !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+      return 'Geçerli bir e-posta adresi giriniz.';
     }
     return null;
   }
@@ -99,7 +112,9 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
 
     final legalName = legalNameController.text.trim();
     final taxNumber = taxNumberController.text.trim();
+    final taxOffice = taxOfficeController.text.trim();
     final billingAddress = billingAddressController.text.trim();
+    final contactEmail = contactEmailController.text.trim();
     final ownerPhone = normalizeTurkeyMobile(ownerPhoneController.text);
 
     if (legalName.isEmpty) {
@@ -113,8 +128,19 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
       return;
     }
 
+    if (taxOffice.isEmpty) {
+      _showMessage('Vergi dairesi giriniz.');
+      return;
+    }
+
     if (billingAddress.isEmpty) {
       _showMessage('Fatura adresi giriniz.');
+      return;
+    }
+
+    final emailError = _validateEmail(contactEmail);
+    if (emailError != null) {
+      _showMessage(emailError);
       return;
     }
 
@@ -143,7 +169,9 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
       final response = await api.registerSelfService(
         legalName: legalName,
         taxNumber: taxNumber,
+        taxOffice: taxOffice,
         billingAddress: billingAddress,
+        contactEmail: contactEmail,
         ownerPhone: ownerPhone,
         privacyNoticeAcknowledged: privacyNoticeAcknowledged,
         privacyNoticeVersion: B2BApiClient.b2bPrivacyNoticeVersion,
@@ -238,10 +266,26 @@ class _B2BRegistrationScreenState extends State<B2BRegistrationScreen> {
               ),
               const SizedBox(height: 14),
               FlowTextField(
+                controller: taxOfficeController,
+                label: 'Vergi Dairesi',
+                textCapitalization: TextCapitalization.words,
+                textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 14),
+              FlowTextField(
                 controller: billingAddressController,
                 label: 'Fatura Adresi',
                 textCapitalization: TextCapitalization.sentences,
                 textInputAction: TextInputAction.next,
+              ),
+              const SizedBox(height: 14),
+              FlowTextField(
+                controller: contactEmailController,
+                label: 'E-posta',
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autocorrect: false,
+                enableSuggestions: false,
               ),
               const SizedBox(height: 14),
               FlowTextField(

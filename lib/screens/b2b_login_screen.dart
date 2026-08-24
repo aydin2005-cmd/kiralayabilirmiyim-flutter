@@ -7,6 +7,7 @@ import '../services/otp_autofill_coordinator.dart';
 import '../services/sms_retriever_service.dart';
 import '../widgets/flow_widgets.dart';
 import '../widgets/primary_button.dart';
+import 'b2b_password_reset_screen.dart';
 import 'b2b_portal_screen.dart';
 
 class B2BLoginScreen extends StatefulWidget {
@@ -42,7 +43,9 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
   @override
   void initState() {
     super.initState();
-    phoneController = TextEditingController(text: widget.initialPhone ?? '');
+    phoneController = TextEditingController(
+      text: turkeyMobileFieldDigits(widget.initialPhone ?? ''),
+    );
     api = widget.apiClient ?? B2BApiClient();
     otpAutofill = OtpAutofillCoordinator(
       controller: codeController,
@@ -141,6 +144,26 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
     await SmsRetrieverService.instance.stop();
   }
 
+  Future<void> _returnToCredentials() async {
+    if (loading) {
+      return;
+    }
+
+    credentialRevision += 1;
+    await SmsRetrieverService.instance.stop();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      organizationChoices = const <Map<String, dynamic>>[];
+      challengeId = null;
+      codeLength = 6;
+      codeController.clear();
+    });
+  }
+
   Future<void> startLogin() => _startLogin();
 
   Future<void> _startLogin({
@@ -237,6 +260,8 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
         return;
       }
 
+      FocusScope.of(context).unfocus();
+
       setState(() {
         organizationChoices = const <Map<String, dynamic>>[];
         challengeId = id;
@@ -322,6 +347,24 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
     }
   }
 
+  Future<void> _openPasswordReset() async {
+    await SmsRetrieverService.instance.stop();
+
+    if (!mounted) {
+      return;
+    }
+
+    await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => B2BPasswordResetScreen(
+          initialPhone: phoneController.text,
+          apiClient: api,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final waitingOtp = challengeId != null;
@@ -345,97 +388,31 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
                 : startLogin,
       ),
       children: [
-        const FlowHeader(
-          icon: Icons.login_rounded,
-          eyebrow: 'Güvenli Kurumsal Giriş',
-          title: 'Firmanızın portalına giriş yapın',
-          subtitle:
-              'Telefon ve şifreniz doğrulandıktan sonra SMS koduyla ikinci doğrulama yapılır.',
+        FlowHeader(
+          icon: waitingOtp ? Icons.sms_outlined : Icons.login_rounded,
+          eyebrow: waitingOtp
+              ? 'İkinci Doğrulama'
+              : 'Güvenli Kurumsal Giriş',
+          title: waitingOtp
+              ? 'SMS kodunu girin'
+              : 'Firmanızın portalına giriş yapın',
+          subtitle: waitingOtp
+              ? 'Telefon ve şifreniz doğrulandı. Yetkili cep telefonunuza gönderilen SMS koduyla girişi tamamlayın.'
+              : 'Telefon ve şifreniz doğrulandıktan sonra SMS koduyla ikinci doğrulama yapılır.',
         ),
         const SizedBox(height: 18),
         PremiumCard(
           child: Column(
             children: [
-              FlowTextField(
-                controller: phoneController,
-                label: 'Yetkili cep telefonu',
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+\s]')),
-                ],
-                onChanged: _onCredentialChanged,
-              ),
-              const SizedBox(height: 14),
-              FlowTextField(
-                controller: passwordController,
-                label: 'Kurumsal şifre',
-                obscureText: true,
-                onChanged: _onCredentialChanged,
-              ),
-              if (choosingOrganization) ...[
-                const SizedBox(height: 14),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Firma Seçimi',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Birden fazla kurumsal kaydınız bulundu. '
-                    'Devam etmek istediğiniz firmayı seçin.',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ...organizationChoices.map(
-                  (organization) {
-                    final organizationId =
-                        organization['organization_id']?.toString() ?? '';
-                    final organizationName =
-                        organization['organization_name']?.toString() ?? '-';
-                    final organizationRole =
-                        organization['role']?.toString() ?? '';
-
-                    return Material(
-                      type: MaterialType.transparency,
-                      child: ListTile(
-                        key: ValueKey(
-                          'b2b-login-org-$organizationId',
-                        ),
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(
-                          Icons.business_outlined,
-                        ),
-                        title: Text(
-                          organizationName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        subtitle: organizationRole.isEmpty
-                            ? null
-                            : Text('Rol: $organizationRole'),
-                        trailing: const Icon(
-                          Icons.chevron_right_rounded,
-                        ),
-                        onTap: loading || organizationId.isEmpty
-                            ? null
-                            : () => _startLogin(
-                                  organizationId: organizationId,
-                                ),
-                      ),
-                    );
-                  },
-                ),
-              ],
               if (waitingOtp) ...[
-                const SizedBox(height: 14),
+                TrustNotice(
+                  icon: Icons.verified_user_outlined,
+                  text:
+                      'Telefon ve şifreniz doğrulandı. Gönderilen $codeLength haneli SMS kodunu aşağıya giriniz.',
+                ),
+                const SizedBox(height: 16),
                 FlowTextField(
+                  key: const ValueKey('b2b-login-otp-field'),
                   controller: codeController,
                   label: 'SMS doğrulama kodu',
                   autofocus: true,
@@ -449,6 +426,104 @@ class _B2BLoginScreenState extends State<B2BLoginScreen> {
                   onChanged: otpAutofill.handleCodeChanged,
                   onSubmitted: (_) => verifyLogin(),
                 ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: loading ? null : _returnToCredentials,
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('Telefon/şifreyi değiştir'),
+                  ),
+                ),
+              ] else ...[
+                FlowTextField(
+                  controller: phoneController,
+                  label: 'Yetkili cep telefonu',
+                  helper: 'Başında 0 olmadan 5XXXXXXXXX formatında giriniz.',
+                  prefixText: '+90 ',
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  inputFormatters: const [
+                    TurkeyMobileFieldFormatter(),
+                  ],
+                  onChanged: _onCredentialChanged,
+                ),
+                const SizedBox(height: 14),
+                FlowTextField(
+                  controller: passwordController,
+                  label: 'Kurumsal şifre',
+                  obscureText: true,
+                  onChanged: _onCredentialChanged,
+                ),
+                if (!choosingOrganization)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: loading ? null : _openPasswordReset,
+                      child: const Text('Şifremi Unuttum'),
+                    ),
+                  ),
+                if (choosingOrganization) ...[
+                  const SizedBox(height: 14),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Firma Seçimi',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Birden fazla kurumsal kaydınız bulundu. '
+                      'Devam etmek istediğiniz firmayı seçin.',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...organizationChoices.map(
+                    (organization) {
+                      final organizationId =
+                          organization['organization_id']?.toString() ?? '';
+                      final organizationName =
+                          organization['organization_name']?.toString() ?? '-';
+                      final organizationRole =
+                          organization['role']?.toString() ?? '';
+
+                      return Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          key: ValueKey(
+                            'b2b-login-org-$organizationId',
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(
+                            Icons.business_outlined,
+                          ),
+                          title: Text(
+                            organizationName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          subtitle: organizationRole.isEmpty
+                              ? null
+                              : Text('Rol: $organizationRole'),
+                          trailing: const Icon(
+                            Icons.chevron_right_rounded,
+                          ),
+                          onTap: loading || organizationId.isEmpty
+                              ? null
+                              : () => _startLogin(
+                                    organizationId: organizationId,
+                                  ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ],
           ),

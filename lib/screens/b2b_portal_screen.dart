@@ -32,6 +32,7 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
 
   String get role => me?['role']?.toString() ?? '';
   bool get canManage => role == 'owner' || role == 'admin';
+  bool get canManageReferrals => canManage || role == 'operator';
 
   @override
   void initState() {
@@ -285,7 +286,7 @@ class _B2BPortalScreenState extends State<B2BPortalScreen> {
               apiClient: api,
             ),
           ),
-        if (canManage)
+        if (canManageReferrals)
           tile(
             icon: Icons.link_outlined,
             title: 'Aday Davetleri',

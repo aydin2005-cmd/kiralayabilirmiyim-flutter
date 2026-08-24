@@ -51,7 +51,7 @@ void main() {
   });
 
   testWidgets(
-    'credential changes clear organization choices and OTP challenge',
+    'credential changes clear organization choices and explicit return clears OTP challenge',
     (tester) async {
       final requestBodies = <Map<String, dynamic>>[];
 
@@ -118,9 +118,7 @@ void main() {
       );
 
       await tester.tap(
-        find.text(
-          'Giri\u015f Kodu G\u00f6nder',
-        ),
+        find.text('Giriş Kodu Gönder'),
       );
 
       await _pumpUntil(
@@ -169,17 +167,13 @@ void main() {
       );
 
       await tester.tap(
-        find.text(
-          'Giri\u015f Kodu G\u00f6nder',
-        ),
+        find.text('Giriş Kodu Gönder'),
       );
 
       await _pumpUntil(
         tester,
         () => find
-            .text(
-              'SMS do\u011frulama kodu',
-            )
+            .text('SMS doğrulama kodu')
             .evaluate()
             .isNotEmpty,
       );
@@ -202,11 +196,28 @@ void main() {
       );
 
       expect(
-        find.text(
-          'SMS do\u011frulama kodu',
-        ),
+        find.text('SMS doğrulama kodu'),
         findsOneWidget,
       );
+      expect(find.text('Yetkili cep telefonu'), findsNothing);
+      expect(find.text('Kurumsal şifre'), findsNothing);
+      expect(find.text('Telefon/şifreyi değiştir'), findsOneWidget);
+
+      final changeCredentialsFinder = find.text('Telefon/şifreyi değiştir');
+      tester.testTextInput.hide();
+      await tester.pump();
+      await tester.ensureVisible(changeCredentialsFinder);
+      await tester.pump();
+      await tester.tap(changeCredentialsFinder);
+      await tester.pump();
+
+      expect(
+        find.text('SMS doğrulama kodu'),
+        findsNothing,
+      );
+      expect(find.text('Yetkili cep telefonu'), findsOneWidget);
+      expect(find.text('Kurumsal şifre'), findsOneWidget);
+      expect(find.text('Giriş Kodu Gönder'), findsOneWidget);
 
       await tester.enterText(
         find.byType(EditableText).first,
@@ -215,18 +226,22 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text(
-          'SMS do\u011frulama kodu',
+        find.byKey(
+          const ValueKey(
+            'b2b-login-org-org-a',
+          ),
         ),
         findsNothing,
       );
-
       expect(
-        find.text(
-          'Giri\u015f Kodu G\u00f6nder',
+        find.byKey(
+          const ValueKey(
+            'b2b-login-org-org-b',
+          ),
         ),
-        findsOneWidget,
+        findsNothing,
       );
+      expect(find.text('SMS doğrulama kodu'), findsNothing);
     },
   );
 
@@ -260,9 +275,7 @@ void main() {
       );
 
       await tester.tap(
-        find.text(
-          'Giri\u015f Kodu G\u00f6nder',
-        ),
+        find.text('Giriş Kodu Gönder'),
       );
 
       await _pumpUntil(
@@ -318,16 +331,12 @@ void main() {
       );
 
       expect(
-        find.text(
-          'SMS do\u011frulama kodu',
-        ),
+        find.text('SMS doğrulama kodu'),
         findsNothing,
       );
 
       expect(
-        find.text(
-          'Giri\u015f Kodu G\u00f6nder',
-        ),
+        find.text('Giriş Kodu Gönder'),
         findsOneWidget,
       );
     },

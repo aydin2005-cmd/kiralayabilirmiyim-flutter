@@ -296,8 +296,16 @@ void main() {
     expect(find.textContaining('Çok fazla SMS kodu istendi.'), findsOneWidget);
     expect(find.textContaining('Yaklaşık 2 saat'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'SMS doğrulama kodu'), findsNothing);
-    expect(find.text('+90 555 111 22 33'), findsOneWidget);
-    expect(find.text('SecretPass1'), findsOneWidget);
+    final fieldValues = tester
+        .widgetList<TextField>(
+          find.byType(TextField, skipOffstage: false),
+        )
+        .map((field) => field.controller?.text)
+        .whereType<String>()
+        .toList();
+
+    expect(fieldValues, contains('5551112233'));
+    expect(fieldValues, contains('SecretPass1'));
   });
 
   testWidgets('login duplicate tap sends only one OTP start request',

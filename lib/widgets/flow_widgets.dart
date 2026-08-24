@@ -262,6 +262,9 @@ class FlowTextField extends StatelessWidget {
   final int? maxLength;
   final bool obscureText;
   final bool autofocus;
+  final bool enabled;
+  final bool autocorrect;
+  final bool enableSuggestions;
   final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
   final Iterable<String>? autofillHints;
@@ -278,6 +281,9 @@ class FlowTextField extends StatelessWidget {
       this.maxLength,
       this.obscureText = false,
       this.autofocus = false,
+      this.enabled = true,
+      this.autocorrect = true,
+      this.enableSuggestions = true,
       this.textCapitalization = TextCapitalization.none,
       this.inputFormatters,
       this.autofillHints,
@@ -290,6 +296,9 @@ class FlowTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       autofocus: autofocus,
+      enabled: enabled,
+      autocorrect: autocorrect,
+      enableSuggestions: enableSuggestions,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       maxLength: maxLength,

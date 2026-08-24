@@ -46,6 +46,10 @@
 
 <key>NSPhotoLibraryUsageDescription</key>
 <string>Findeks risk raporunuzu PDF olarak seçip yükleyebilmeniz için fotoğraf arşivi ve dosya erişimi kullanılabilir.</string>
+<key>NSCameraUsageDescription</key>
+<string>Findeks risk raporunuzu veya gerekli belgeleri kamerayla çekip yükleyebilmeniz için kamera erişimi kullanılabilir.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Kiralamaya konu yerin şehir ve ilçe bilgisini seçmeyi kolaylaştırmak için konumunuz yalnızca uygulamayı kullanırken kullanılabilir.</string>
 <key>CFBundleURLTypes</key>
 <array>
 <dict>

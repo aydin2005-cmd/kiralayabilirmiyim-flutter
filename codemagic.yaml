@@ -29,7 +29,7 @@ workflows:
         script: |
           IOS_BUILD_NUMBER=$(date +%s)
           echo "Using iOS build number: $IOS_BUILD_NUMBER"
-          flutter build ipa --release --build-number=$IOS_BUILD_NUMBER --dart-define=API_BASE_URL=https://api.kiralayabilirmiyim.com --export-options-plist=/Users/builder/export_options.plist
+          flutter build ipa --release --build-name=1.1.1 --build-number=$IOS_BUILD_NUMBER --dart-define=API_BASE_URL=https://api.kiralayabilirmiyim.com --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:
       - build/ios/ipa/*.ipa
